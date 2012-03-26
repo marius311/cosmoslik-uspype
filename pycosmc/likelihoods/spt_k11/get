@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+wget http://lambda.gsfc.nasa.gov/data/suborbital/SPT/spectra_2011/bandpowers_spt20082009.tar.gz
+tar zxvf bandpowers_spt20082009.tar.gz
+
