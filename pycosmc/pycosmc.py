@@ -8,6 +8,7 @@ lnls = []
 models = []
 derivers = []
 
+
 def lnl(p,derivative=0):
     #Calculate derived parameters
     for d in derivers: d.add_derived(p)
@@ -26,9 +27,12 @@ def pycosmc(p):
 
     #Load model, likelihood, and derivers parameter modules
     global lnls, models, derivers
-    loadmod = lambda x: [__import__(x+'.'+l,fromlist=l) for l in p[x].split()]
-    lnls, models, derivers = [loadmod(x) for x in ['likelihoods','models','derivers']]
+    loadmods = lambda x: [__import__(x+'.'+l,fromlist=l) for l in p[x].split()]
+    lnls, models, derivers = [loadmods(x) for x in ['likelihoods','models','derivers']]
     
+    #Likelihood modules will add to this set the quantities they need calculated
+    p['models.calculate']=set()
+
     #Initialize modules
     for i in models+lnls+derivers:
         if 'init' in i.__dict__: i.init(p)
@@ -41,7 +45,7 @@ def pycosmc(p):
 if __name__=="__main__":
     
     if (len(sys.argv) != 2): 
-        print "Usage: python signal_to_params.py parameter_file.ini"
+        print "Usage: python pycosmc.py parameter_file.ini"
         sys.exit()
 
     pycosmc(sys.argv[1])

@@ -6,24 +6,26 @@ eff_fr={'dusty':(150,150),
         'radio':(150,150),
         'tsz':(150,150)}
 
-fluxcut = 20
-
+fluxcut = 50
 
 def init(p):
-    global spec, sigma, windows, windowrange
+    global spec, sigma, windows, windowrange, datadir
     
-    rootdir = os.path.join(os.path.dirname(__file__),'bandpowers')
+    datadir = os.path.join(os.path.dirname(__file__),'bandpowers')
     
     #Load spectrum as covariance
-    with open(os.path.join(rootdir,'Spectrum_spt20082009.newdat')) as f:
+    with open(os.path.join(datadir,'Spectrum_spt20082009.newdat')) as f:
         while 'TT' not in f.readline(): pass
         spec=array([fromstring(f.readline(),sep=' ')[1] for _ in range(47)])
         sigma=cho_factor(array([fromstring(f.readline(),sep=' ') for _ in range(94)])[47:])
         
     #Load windows
-    windows = [loadtxt(os.path.join(rootdir,'windows','window_0809','window_%i'%i))[:,1] for i in range(1,48)]
-    windowrange = (lambda x: slice(min(x),max(x)+1))(loadtxt(os.path.join(rootdir,'windows','window_0809','window_1'))[:,0])
+    windows = [loadtxt(os.path.join(datadir,'windows','window_0809','window_%i'%i))[:,1] for i in range(1,48)]
+    windowrange = (lambda x: slice(min(x),max(x)+1))(loadtxt(os.path.join(datadir,'windows','window_0809','window_1'))[:,0])
 
+    #This likelihood only needs the TT spectrum
+    p['models.calculate'].add('cl_TT')
+    
     assert p['lmax']>=windowrange.stop-1, "SPT K11 likelihood needs C_ell's to ell=%i"%(p['spt_k11.windowrange'].stop-1)
 
 
