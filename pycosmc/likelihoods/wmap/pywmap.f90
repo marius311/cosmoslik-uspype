@@ -18,9 +18,9 @@ contains
 
 
     ! To call from Python use WMAPLnLike(cl_tt) where cl_tt[0] is ell=2
-    function WMAPLnLike(cl_tt, cl_ee, cl_bb, cl_te, lmax)
+    function WMAPLnLike(cltt, clte, clee, clbb, lmax)
       real WMAPLnLike
-      real(8), dimension(2:lmax) :: cl_tt,cl_te,cl_ee,cl_bb
+      real(8), dimension(2:lmax) :: cltt,clte,clee,clbb
       real(8) :: like(num_WMAP)
 
       WMAPLnLike = 1e30
@@ -28,11 +28,10 @@ contains
          print *, "WMAPLnLike: Please provide c_ell's up to", ttmax
          return
       end if
-      if (.not. pywmap_initalized) then
-         call WMAPInit()
-      end if
+
+      if (.not. pywmap_initalized) call WMAPInit()
          
-      call wmap_likelihood_compute(cl_tt(2:ttmax),cl_te(2:ttmax),cl_ee(2:ttmax),cl_bb(2:ttmax),like)
+      call wmap_likelihood_compute(cltt(2:ttmax),clte(2:ttmax),clee(2:ttmax),clbb(2:ttmax),like)
       
       if (wmap_likelihood_ok) then
          WMAPLnLike = sum(like)

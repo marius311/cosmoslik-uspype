@@ -69,13 +69,3 @@ def get(p,derivative=0):
         if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
         
         return result
-        
-
-#p={'lmax':1000,'camb.workdir':os.path.abspath(''),'camb':'/home/marius/workspace/camb/camb/camb','camb.defaults':'/home/marius/workspace/camb/camb/params.ini'}
-#init(p)
-#get(p)
-#from matplotlib.pyplot import * 
-#for k,v in p['model'].items(): 
-#    semilogy(v,label=k)
-#legend(loc='lower right')
-#show()

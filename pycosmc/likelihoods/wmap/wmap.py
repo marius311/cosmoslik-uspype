@@ -18,4 +18,4 @@ def lnl(model,p,derivative=0):
             s = slice(*p['wmap.%s.lrange'%x])
             cl[s] = model['cl_%s'%x][s]
 
-    return pywmap.wmaplnlike(cltt[2:],clte[2:],clee[2:],clbb[2:])
+    return pywmap.wmaplnlike(cltt=cltt[2:],clte=clte[2:],clee=clee[2:],clbb=clbb[2:])
