@@ -37,6 +37,7 @@ contains
          WMAPLnLike = sum(like)
       else
          print *, "WMAPLnLike: Error computing WMAP likelihood."
+         call wmap_likelihood_error_report
       endif
 
     end function
