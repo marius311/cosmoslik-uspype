@@ -3,10 +3,11 @@ from tempfile import mkdtemp
 from subprocess import check_output
 from ini import read_ini
 from numpy import zeros, loadtxt, array
+import shutil
 
 
 def init(p):
-    global workdir, paramfile, params
+    global workdir, paramfile, params, outputfiles
     
     assert os.path.exists(p['camb']), "Could not find camb executable at '%s'"%p['camb']
     workdir = p['camb.workdir'] if 'camb.workdir' in p else mkdtemp()
@@ -24,7 +25,7 @@ def init(p):
                'transfer_filename(1)': os.path.join(workdir,'transfer'),
                'transfer_matterpower(1)':os.path.join(workdir,'matterpower')
                })
-
+    outputfiles = [v for k,v in params.items() if 'output_file' in k or k in ['transfer_filename(1)','transfer_matterpower(1)']]
 
 def get(p,derivative=0):
         if derivative!=0: raise NotImplementedError("CAMB model can't do derivatives yet.")
@@ -45,17 +46,25 @@ def get(p,derivative=0):
                 if isinstance(v,bool): f.write('%s = %s\n'%(k,'T' if v else 'F'))
                 elif isinstance(v,(float, int, str)): f.write('%s = %s\n'%(k,v))
 
-        #Call CAMB
-        check_output([p['camb'],paramfile],cwd=os.path.dirname(p['camb']))
-    
-        #Load CAMB output files
-        scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(params['scalar_output_file']).T))
-        if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['lensed_output_file']).T))
-        if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['tensor_output_file']).T))
-        nls, nlt = min(p['lmax'],len((lens if dolens else scal)['l'])), min(p['lmax'],len(tens['l']) if dotens else 0)
+        #Delete existing files
+        for f in outputfiles: 
+            if os.path.exists(f): os.remove(f)
 
+    
         result = {}
         for x in ['TT','TE','EE','BB']: result['cl_%s'%x] = zeros(p['lmax']+2)
+
+        #Call CAMB and load output files
+        try:
+            output = check_output([p['camb'],paramfile],cwd=os.path.dirname(p['camb']))
+            scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(params['scalar_output_file']).T))
+            if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['lensed_output_file']).T))
+            if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['tensor_output_file']).T))
+            if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
+        except Exception:
+            raise Exception('CAMB error\n'+output)
+            
+        nls, nlt = min(p['lmax'],len((lens if dolens else scal)['l'])), min(p['lmax'],len(tens['l']) if dotens else 0)
         
         #Add scalar/lensed contribution
         for x in ['TT','TE','EE']: result['cl_%s'%x][2:nls+2] += (1-Alens)*scal[x][:nls] + Alens*lens[x][:nls]
@@ -66,6 +75,5 @@ def get(p,derivative=0):
             for x in ['TT','TE','EE','BB']: result['cl_%s'%x][2:nlt+2] += tens[x][:nlt]  
             
         #Get matter power-spectrum 
-        if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
         
         return result
