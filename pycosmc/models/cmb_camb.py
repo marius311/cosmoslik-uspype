@@ -2,15 +2,13 @@ import os
 from tempfile import mkdtemp
 from subprocess import check_output
 from pycosmc.ini import read_ini
-from numpy import zeros, loadtxt, array
-import shutil
-
+from numpy import zeros, loadtxt
 
 def init(p):
     global workdir, paramfile, params, outputfiles
     
     assert os.path.exists(p['camb']), "Could not find camb executable at '%s'"%p['camb']
-    workdir = p['camb.workdir'] if 'camb.workdir' in p else mkdtemp()
+    workdir = os.path.abspath(p['camb.workdir'] if 'camb.workdir' in p else mkdtemp())
     paramfile = os.path.join(workdir,'params.ini')
     params = read_ini(p['camb.defaults']) if 'camb.defaults' in p else {}
     params.update(

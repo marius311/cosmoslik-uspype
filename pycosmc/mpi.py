@@ -14,8 +14,7 @@ def get_mpi():
             from mpi4py import MPI
             comm = MPI.COMM_WORLD
             (rank,size) = (comm.Get_rank(),comm.Get_size())
-        except Exception as e:
-            print e.message
+        except ImportError:
             (rank,size,comm) = (0,1,None)
             
     return namedtuple('mpi',['rank','size','comm'])(rank,size,comm)
