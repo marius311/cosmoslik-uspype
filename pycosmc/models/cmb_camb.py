@@ -1,7 +1,7 @@
 import os
 from tempfile import mkdtemp
 from subprocess import check_output
-from ini import read_ini
+from pycosmc.ini import read_ini
 from numpy import zeros, loadtxt, array
 import shutil
 
