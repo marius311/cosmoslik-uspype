@@ -1,3 +1,8 @@
+import os, sys, re
+from numpy import *
+from matplotlib.pyplot import *
+from matplotlib.mlab import movavg
+
 class Chain(dict):
     """
     An MCMC chain. This is just a dictionary mapping parameter names
@@ -87,8 +92,7 @@ class Chains(list):
         """Plot the value of a parameter as a function of sample number for each chain."""
         for c in self: c.plot(param)
     
-    
-def likelihoodplot2d(datx,daty,weights=None,nbins=15,which=[.68,.95],filled=True,color='k',**kw):
+def likelihoodplot2d(datx,daty,weights=None,nbins=15,which=[.68,.95],filled=False,color='k',**kw):
     if (weights==None): weights=ones(len(datx))
     H,xe,ye = histogram2d(datx,daty,nbins,weights=weights)
     xem, yem = movavg(xe,2), movavg(ye,2)
@@ -100,6 +104,20 @@ def likelihoodplot1d(dat,weights=None,nbins=30,range=None,maxed=True,**kw):
     if maxed: H=H/max(H)
     xem=movavg(xe,2)
     plot(xem,H,**kw)
+
+def get_covariance(data,weights=None):
+    if (weights==None): return cov(data.T)
+    else:
+        mean = sum(data.T*weights,axis=1)/sum(weights)
+        zdata = data-mean
+        return dot(zdata.T*weights,zdata)/(sum(weights)-1)
+
+def confint2d(hist,which):
+    """Return """
+    H=sort(hist.ravel())[::-1]
+    sumH=sum(H)
+    cdf=array([sum(H[H>x])/sumH for x in H])
+    return interp(which,cdf,H)
 
 
 def load_chain(filename):

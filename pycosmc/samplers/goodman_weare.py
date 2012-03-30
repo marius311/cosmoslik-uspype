@@ -16,7 +16,7 @@ class NamedEnsembleSampler(emcee.EnsembleSampler):
         return super(NamedEnsembleSampler, self).sample(vstack([pos0[k] for k in self.params]).T,**kwargs)
 
 
-def get_varied(params): return params["$VARIED"]
+def get_sampled(params): return params["$SAMPLED"]
 def get_outputted(params): return params["$OUTPUT"]
 
 def initialize_covariance(params):
@@ -31,30 +31,30 @@ def initialize_covariance(params):
             prop_names = re.sub("#","",file.readline()).split()
             prop = genfromtxt(file)
 
-    params["$COV"] = diag([params["*"+name][3]**2 for name in get_varied(params)])
-    common = set(get_varied(params)) & set(prop_names)
+    params["$COV"] = diag([params["*"+name][3]**2 for name in get_sampled(params)])
+    common = set(get_sampled(params)) & set(prop_names)
     if common: 
-        idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [get_varied(params),prop_names]))
+        idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [get_sampled(params),prop_names]))
         for ((i,j),(k,l)) in idxs: params["$COV"][i,j] = prop[k,l]
 
             
 
 
-def mcmc(p, lnl, mpi=False):
+def sample(p, lnl, mpi=False):
     nwalkers = p.get('walkers',100)
     nsamp = p.get('samples',10000)
     initialize_covariance(p)
     
-    lnl2 = lambda p: lnl(p) if all([p['*'+k][1]<p[k]<p['*'+k][2] for k in get_varied(p)]) else inf
+    lnl2 = lambda p: lnl(p) if all([p['*'+k][1]<p[k]<p['*'+k][2] for k in get_sampled(p)]) else inf
     
-    sampler=NamedEnsembleSampler(nwalkers,get_varied(p),lnl2,extra_params=p,pool=namedtuple('pool',['map'])(mpi_map) if mpi else None)
+    sampler=NamedEnsembleSampler(nwalkers,get_sampled(p),lnl2,extra_params=p,pool=namedtuple('pool',['map'])(mpi_map) if mpi else None)
     
-    p0=mpi_consistent(dict(zip(get_varied(p),random.multivariate_normal([p[k] for k in get_varied(p)],p['$COV'],size=nwalkers).T)))
+    p0=mpi_consistent(dict(zip(get_sampled(p),random.multivariate_normal([p[k] for k in get_sampled(p)],p['$COV'],size=nwalkers).T)))
 
     if 'chain' in p and is_master(): file=open(p['chain'],'w')
     else: file=None
     
-    if file: file.write('#'+' '.join(get_varied(p))+'\n')
+    if file: file.write('#'+' '.join(get_sampled(p))+'\n')
     for i,(pos,lnprob,state) in enumerate(sampler.sample(p0,iterations=nsamp/nwalkers),1):
         if file:
             savetxt(file,pos)

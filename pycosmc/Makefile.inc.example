@@ -6,3 +6,6 @@ CFITSIO =
 
 #Link flags needed to link the LAPACK library
 LAPACK = 
+
+#Extra flags needed for f2py
+F2PYFLAGS = 

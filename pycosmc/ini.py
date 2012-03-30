@@ -5,7 +5,7 @@ import re
 def read_ini(path):
    
     params = {}
-    varied_params = []
+    sampled_params = []
    
     with open(path) as f: lines=[l for l in [re.sub("#.*","",l).strip() for l in f.readlines()] if len(l)>0]
     for line in lines:
@@ -21,7 +21,7 @@ def read_ini(path):
                 if (r!=None):
                     v=float(r.groups()[0])
                     params["*"+k]=map(float,r.groups())
-                    varied_params.append(k)
+                    sampled_params.append(k)
                 else:
                     try: 
                         v = literal_eval(v)
@@ -30,7 +30,15 @@ def read_ini(path):
                 
             params[k] = v
         
-    params["$VARIED"] = varied_params 
-    params["$OUTPUT"] = varied_params + params.get("derived","").split()
+    params["$SAMPLED"] = sampled_params 
+    params["$OUTPUT"] = sampled_params + params.get("derived","").split()
     
     return params
+
+def add_sampled_param(p, name, value, min, max, width, output=True):
+    p[name]=value
+    p['*'+name]=[value,min,max,width]
+    p['$SAMPLED'].append(name)
+    if output: p['$OUTPUT'].append(name)
+    
+    
