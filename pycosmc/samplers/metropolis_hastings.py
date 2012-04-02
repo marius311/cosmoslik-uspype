@@ -33,7 +33,7 @@ def sample(x,lnl,**kwargs):
 
 
 def _mcmc(x,lnl,**kwargs):
-    kwargs['$COV'] = initialize_covariance(kwargs)
+    kwargs['_cov'] = initialize_covariance(kwargs)
 
     (cur_lnl, cur_extra), cur_x, cur_weight = lnl(x,**kwargs), x, 1
     
@@ -41,10 +41,10 @@ def _mcmc(x,lnl,**kwargs):
         if v!=None: kwargs.update(v)
         
     for _ in range(kwargs.get("samples",100)):
-        test_x = multivariate_normal(cur_x,kwargs['$COV'])
+        test_x = multivariate_normal(cur_x,kwargs['_cov'])
         test_lnl, test_extra = lnl(test_x, **kwargs)
                 
-        if (log(random()) < cur_lnl-test_lnl):
+        if (log(random()) < (cur_lnl-test_lnl)/len(x)):
             update((yield(sampletuple(cur_x, cur_weight, cur_lnl, cur_extra))))
             cur_lnl, cur_weight, cur_x, cur_extra = test_lnl, 1, test_x, test_extra
         else:
@@ -75,7 +75,7 @@ def _mpi_mcmc(x,lnl,**kwargs):
                 
                 if (kwargs.get("proposal_update",True) 
                     and sum(weights[source-1])>kwargs.get('proposal_update_start',1000)):
-                    comm.send({"$COV":get_new_proposal(samples,weights)},dest=source)
+                    comm.send({"_cov":get_new_proposal(samples,weights)},dest=source)
                 else: comm.send({},dest=source)
                 comm.send(None,dest=source)
 
@@ -116,7 +116,7 @@ def initialize_covariance(params):
     if common: 
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [get_sampled(params),prop_names]))
         for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
-    return sigma
+    return sigma/len(params['$SAMPLED'])
    
 def get_covariance(data,weights=None):
     if (weights==None): return cov(data.T)

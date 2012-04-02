@@ -66,13 +66,12 @@ def pycosmc(p,**kwargs):
                 f.flush()
                 
             if nsamp%p.get('update_frequency',1)==0:
-                print "%ssamples=%s best=%.2f acceptance=%.3f mean={%s} proposal={%s}" % \
+                print "%ssamples=%s best=%.2f acceptance=%.3f last={%s}" % \
                     ('' if mpi.get_rank()==0 else 'Chain %i: '%mpi.get_rank(),
                      str(sum(samples.weight)),
                      min(samples.lnl+[inf]),
                      1./mean(samples.weight),
-                     ', '.join(['%s:%.3g'%(k,v) for k,v in dict([(name,mean([e[name] for e in samples.params[len(samples.params)/2:]])) for name in p['$OUTPUT']]).items()]),
-                     ', '.join(['%s:%.3g'%(k,v) for k,v in dict([(name,std([e[name] for e in samples.params[len(samples.params)/2:]])) for name in p['$OUTPUT']]).items()]),
+                     ', '.join([('like:%.2f'%l1)]+['%s:%.4g'%(name,p1[name]) for name in p['$OUTPUT']])
                      ) 
 
     if f!=None: f.close()

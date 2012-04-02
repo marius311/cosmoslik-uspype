@@ -9,6 +9,7 @@ def lnl(model,p,**kw):
     for i in p['_likelihoods']+p['_models']+p['_derivers']+p['_samplers']:
         if 'diagnostic' in i.__dict__: i.diagnostic({'cl_TT':ax},p)
     ax.set_yscale('log')
+    ax.set_ylim(10,6e3)
     draw()
     ioff()
     return 0
