@@ -43,18 +43,23 @@ def sample(x,lnl,**kwargs):
         print "like=%.2f step={%s}" % (l,', '.join(['%s:%.4g'%(k,v) for k,v in zip(kwargs['$SAMPLED'],x)])) 
         return l
 
-    xopt, lnlopt = fmin(flnl,x,full_output=True,ftol=.01,xtol=1)[:2]
+    if kwargs.get('minimizer.minimize',True):
+        xopt, lnlopt = fmin(flnl,x,full_output=True,ftol=.01,xtol=1)[:2]
+    else
+        xopt = x
+        
     yield xopt, inf, 0, None
     
-    if kwargs.get('hessian',False):
+    if kwargs.get('minimizer.hessian',False):
         try:  
-            from numdifftools import Hessian
-            print "Computing hessian..."
+#            from numdifftools import Hessian
 #            ih = Hessian(flnl,stepNom=xopt/10)(xopt)
+            print "Computing hessian..."
             h = hess(flnl,xopt,[kwargs['*'+k][-1]/10 for k in kwargs['$SAMPLED']])
-            with open(kwargs['hessian_file'],'w') as f:
-                f.write('# '+' '.join(get_sampled(kwargs))+'\n')
-                savetxt(f,h)
+            if 'minimizer.hessian_file' in kwargs:
+                with open(kwargs['minimizer.hessian_file'],'w') as f:
+                    f.write('# '+' '.join(get_sampled(kwargs))+'\n')
+                    savetxt(f,h)
                 
             try:
                 ih = inv(h)

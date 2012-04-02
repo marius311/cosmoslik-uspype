@@ -12,7 +12,7 @@ def init(p):
     pywmap.wmapinit()
     for x in p.get('wmap.use',['TT','TE','EE']): p['_models.get'].add('cl_%s'%x)
     
-    ttdat = loadtxt(os.path.join("/home/marius/workspace/mspec/dat/external/wmap_binned_tt_spectrum_7yr_v4p1.txt"))
+#    ttdat = loadtxt(os.path.join("/home/marius/workspace/mspec/dat/external/wmap_binned_tt_spectrum_7yr_v4p1.txt"))
 
 
 def lnl(model,p,derivative=0):
@@ -29,5 +29,5 @@ def lnl(model,p,derivative=0):
 
 
 def diagnostic(axes,p):
-    axes['cl_TT'].errorbar(ttdat[:,0],ttdat[:,3],yerr=ttdat[:,4],fmt='.',label='WMAP7')
+#    axes['cl_TT'].errorbar(ttdat[:,0],ttdat[:,3],yerr=ttdat[:,4],fmt='.',label='WMAP7')
     axes['cl_TT'].plot(p['_model']['cl_TT'][:1200])

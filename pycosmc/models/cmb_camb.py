@@ -30,9 +30,9 @@ def get(p,derivative=0):
         if derivative!=0: raise NotImplementedError("CAMB model can't do derivatives yet.")
         
         Alens = p.get('A_lens',1)
-        params['get_scalars'] = any(x in p['models.calculate'] for x in ['cl_TT','cl_TE','cl_EE','cl_BB'])
+        params['get_scalars'] = any(x in p['_models.get'] for x in ['cl_TT','cl_TE','cl_EE','cl_BB'])
         params['get_tensors'] = dotens = (p.get('r',0) != 0)
-        params['get_transfers'] = dotrans = 'pk' in p['models.calculate']
+        params['get_transfers'] = dotrans = 'pk' in p['_models.get']
         params['do_lensing'] = dolens = (Alens != 0) 
         params['l_max_scalar'] = p['lmax'] + 100 if dolens else 0
         params['l_max_tensor'] = p['lmax_tensor'] if 'lmax_tensor' in p else p['lmax']
