@@ -1,4 +1,4 @@
-from numpy import array, fromstring, loadtxt, dot
+from numpy import array, fromstring, loadtxt, dot, arange, diag
 from scipy.linalg import cho_factor, cho_solve
 import os
 
@@ -9,7 +9,7 @@ eff_fr={'dusty':(150,150),
 fluxcut = 50
 
 def init(p):
-    global spec, sigma, windows, windowrange, datadir
+    global spec, sigma, windows, windowrange, datadir, ells
     
     datadir = os.path.join(os.path.dirname(__file__),'bandpowers')
     
@@ -22,21 +22,29 @@ def init(p):
     #Load windows
     windows = [loadtxt(os.path.join(datadir,'windows','window_0809','window_%i'%i))[:,1] for i in range(1,48)]
     windowrange = (lambda x: slice(min(x),max(x)+1))(loadtxt(os.path.join(datadir,'windows','window_0809','window_1'))[:,0])
-
+    ells = array([dot(arange(10000)[windowrange],w) for w in windows])
+    
     #This likelihood only needs the TT spectrum
-    p['models.calculate'].add('cl_TT')
+    p['_models.get'].add('cl_TT')
     
     assert p['lmax']>=windowrange.stop, "SPT K11 likelihood needs C_ell's to ell=%i"%windowrange.stop
 
 
 def lnl(model,p,derivative=0):
     if derivative!=0: raise NotImplementedError("WMAP derivative not implemented yet.")
+    global cl
     
     #Get CMB + foreground model
     cl = model['cl_TT'] 
-    if 'fgs' in model: cl += model['fgs'](eff_fr=eff_fr,fluxcut=fluxcut)
+    cl += p['Aps']*(arange(len(cl))/3000.)**2 #Hacked PS term until egfs module
+    #if 'fgs' in model: cl += model['fgs'](eff_fr=eff_fr,fluxcut=fluxcut)
+    cl = array([dot(cl[windowrange],w) for w in windows])
     
     #Apply windows and calculate likelihood
-    dcl = spec-array([dot(cl[windowrange],w) for w in windows])
+    dcl = spec-cl
     return dot(dcl,cho_solve(sigma, dcl))/2
+
+def diagnostic(axes,p):
+    axes['cl_TT'].errorbar(ells,spec,yerr=diag(sigma[0]),fmt='.',label='SPT K11')
+    axes['cl_TT'].plot(ells,cl)
     

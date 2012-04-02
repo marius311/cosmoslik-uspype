@@ -1,1 +1,1 @@
-from wmap import init, lnl
+from wmap import init, lnl, diagnostic
