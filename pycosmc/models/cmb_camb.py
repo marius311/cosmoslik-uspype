@@ -1,6 +1,5 @@
-import os
+import os, sys
 from tempfile import mkdtemp
-from subprocess import check_output, CalledProcessError
 from pycosmc.ini import read_ini
 from numpy import zeros, loadtxt
 
@@ -50,21 +49,23 @@ def get(p,derivative=0):
         for x in ['TT','TE','EE','BB']: result['cl_%s'%x] = zeros(p['lmax']+2)
 
         #Delete existing files
-        for f in outputfiles: 
+        for f in outputfiles+[os.path.join(workdir,'camb.out')]: 
             if os.path.exists(f): os.remove(f)
 
         #Call CAMB and load output files
-        try: output = check_output([p['camb'],paramfile],cwd=os.path.dirname(p['camb']))
-        except CalledProcessError as e: raise Exception('CAMB error\n'+str(e))
-        try:
-            scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(params['scalar_output_file']).T))
-            if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['lensed_output_file']).T))
-            if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['tensor_output_file']).T))
-            if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
-        except Exception as e:
-            raise Exception('Error reading CAMB outputfiles:\n'+str(e)+'\nCAMB output:\n'+output)
-            
-            
+        res = os.system('(cd %s && %s %s >> %s)'%(os.path.dirname(p['camb']),p['camb'],paramfile,os.path.join(workdir,'camb.out')))
+        if res==0:
+            try:
+                scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(params['scalar_output_file']).T))
+                if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['lensed_output_file']).T))
+                if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['tensor_output_file']).T))
+                if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
+            except Exception as e:
+                raise Exception("Error reading CAMB outputfiles '"+str(e)+"'\nCAMB output:\n"+''.join(open(os.path.join(workdir,'camb.out')).readlines()))
+        elif res!=2:
+            raise Exception('CAMB returned error '+str(res)+':\n'+''.join(open(os.path.join(workdir,'camb.out')).readlines()))
+        else: sys.exit()
+        
         nls, nlt = min(p['lmax'],len((lens if dolens else scal)['l'])), min(p['lmax'],len(tens['l']) if dotens else 0)
         
         #Add scalar/lensed contribution
