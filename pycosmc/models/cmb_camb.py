@@ -1,6 +1,6 @@
 import os
 from tempfile import mkdtemp
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 from pycosmc.ini import read_ini
 from numpy import zeros, loadtxt
 
@@ -45,23 +45,25 @@ def get(p,derivative=0):
                 if isinstance(v,bool): f.write('%s = %s\n'%(k,'T' if v else 'F'))
                 elif isinstance(v,(float, int, str)): f.write('%s = %s\n'%(k,v))
 
+
+        result = {}
+        for x in ['TT','TE','EE','BB']: result['cl_%s'%x] = zeros(p['lmax']+2)
+
         #Delete existing files
         for f in outputfiles: 
             if os.path.exists(f): os.remove(f)
 
-    
-        result = {}
-        for x in ['TT','TE','EE','BB']: result['cl_%s'%x] = zeros(p['lmax']+2)
-
         #Call CAMB and load output files
+        try: output = check_output([p['camb'],paramfile],cwd=os.path.dirname(p['camb']))
+        except CalledProcessError as e: raise Exception('CAMB error\n'+str(e))
         try:
-            output = check_output([p['camb'],paramfile],cwd=os.path.dirname(p['camb']))
             scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(params['scalar_output_file']).T))
             if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['lensed_output_file']).T))
             if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['tensor_output_file']).T))
             if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
-        except Exception:
-            raise Exception('CAMB error\n'+output)
+        except Exception as e:
+            raise Exception('Error reading CAMB outputfiles:\n'+str(e)+'\nCAMB output:\n'+output)
+            
             
         nls, nlt = min(p['lmax'],len((lens if dolens else scal)['l'])), min(p['lmax'],len(tens['l']) if dotens else 0)
         
