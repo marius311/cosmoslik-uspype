@@ -7,6 +7,7 @@ from numpy import zeros, loadtxt
 def init(p):
     global workdir, paramfile, params, outputfiles
     
+    assert 'camb' in p, "Expected camb=/path/to/camb."
     assert os.path.exists(p['camb']), "Could not find camb executable at '%s'"%p['camb']
     workdir = os.path.abspath(p['camb.workdir'] if 'camb.workdir' in p else mkdtemp())
     paramfile = os.path.join(workdir,'params.ini')

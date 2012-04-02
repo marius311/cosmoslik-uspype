@@ -26,7 +26,7 @@ def init(p):
     #This likelihood only needs the TT spectrum
     p['models.calculate'].add('cl_TT')
     
-    assert p['lmax']>=windowrange.stop-1, "SPT K11 likelihood needs C_ell's to ell=%i"%(p['spt_k11.windowrange'].stop-1)
+    assert p['lmax']>=windowrange.stop, "SPT K11 likelihood needs C_ell's to ell=%i"%windowrange.stop
 
 
 def lnl(model,p,derivative=0):
