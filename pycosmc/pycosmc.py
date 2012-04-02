@@ -4,20 +4,25 @@ from numpy import mean, sqrt, diag, inf, std
 from collections import namedtuple
 import mpi
 
+derivers = []
+models = []
+lnls = []
+samplers = []
 
 def lnl(x,derivative=0,**kwargs):
+    
     #Convert vector x to nice named dictionary
     p = kwargs.copy(); p.update(zip(kwargs['$SAMPLED'],x))
     
     #Calculate derived parameters
-    for d in p['_derivers']: d.add_derived(p)
+    for d in derivers: d.add_derived(p)
     
     #Evaluate models
     p['_model'] = {}
-    for m in p['_models']: p['_model'].update(m.get(p))
+    for m in models: p['_model'].update(m.get(p))
     
     #Evaluate likelihoods
-    elnls = (l.lnl(p['_model'],p,derivative=derivative) for l in p['_likelihoods'])
+    elnls = (l.lnl(p['_model'],p,derivative=derivative) for l in lnls)
 
     return (sum(elnls) if derivative==0 else map(__add__, *elnls)), p
 
@@ -27,14 +32,14 @@ def pycosmc(p,**kwargs):
     p.update(kwargs)
 
     #Import the various modules
-    for x in ['likelihoods','models','derivers','samplers']: 
-        p['_'+x] = [__import__('pycosmc.%s.%s'%(x,m),fromlist=m) for m in p.get(x,'').split()] 
+    for (l,x) in zip((lnls,models,derivers,samplers),('likelihoods','models','derivers','samplers')): 
+        l += [__import__('pycosmc.%s.%s'%(x,m),fromlist=m) for m in p.get(x,'').split()] 
      
     #Likelihood modules will add to this set the quantities they need calculated
     p['_models.get']=set()
 
     #Initialize modules
-    for i in p['_likelihoods']+p['_models']+p['_derivers']+p['_samplers']:
+    for i in lnls+models+derivers+samplers:
         if 'init' in i.__dict__: i.init(p)
         
     #Prep output file
@@ -43,10 +48,9 @@ def pycosmc(p,**kwargs):
         f.write("# lnl weight "+" ".join(p['$OUTPUT'])+"\n")
     else: f = None
         
-        
     #Run samplers
     samples = namedtuple('sampletuple',['x','weight','lnl','params'])([],[],[],[])
-    for sampler in p['_samplers']:
+    for sampler in samplers:
         print "Starting %s sampler..."%sampler.__name__.split('.')[-1]
         for (nsamp,s) in enumerate(sampler.sample([p[k] for k in p['$SAMPLED']],lnl,**p)):
             yield s
@@ -55,7 +59,7 @@ def pycosmc(p,**kwargs):
             #Add derived if they're not in there
             if p1==None or not all(k in p1 for k in p['$OUTPUT']): 
                 p1 = p.copy(); p.update(p1); p.update(zip(p['$SAMPLED'],x1))
-                for d in p['_derivers']: d.add_derived(p1)
+                for d in derivers: d.add_derived(p1)
                 assert all(k in p1 for k in p['$OUTPUT']), "Derivers didn't calculate all the derived parameters. Check 'output' key or add derivers."
 
             if w1!=0: 

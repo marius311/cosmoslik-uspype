@@ -44,7 +44,7 @@ def lnl(model,p,derivative=0):
     dcl = spec-cl
     return dot(dcl,cho_solve(sigma, dcl))/2
 
-def diagnostic(axes,p):
-    axes['cl_TT'].errorbar(ells,spec,yerr=diag(sigma[0]),fmt='.',label='SPT K11')
-    axes['cl_TT'].plot(ells,cl)
-    
+#def diagnostic(axes,p):
+#    axes['cl_TT'].errorbar(ells,spec,yerr=diag(sigma[0]),fmt='.',label='SPT K11')
+#    axes['cl_TT'].plot(ells,cl)
+#    

@@ -1,1 +1,1 @@
-from spt_k11 import init, lnl, diagnostic
+from spt_k11 import init, lnl

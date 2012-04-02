@@ -28,6 +28,6 @@ def lnl(model,p,derivative=0):
     return pywmap.wmaplnlike(cltt=cltt[2:],clte=clte[2:],clee=clee[2:],clbb=clbb[2:])
 
 
-def diagnostic(axes,p):
-#    axes['cl_TT'].errorbar(ttdat[:,0],ttdat[:,3],yerr=ttdat[:,4],fmt='.',label='WMAP7')
-    axes['cl_TT'].plot(p['_model']['cl_TT'][:1200])
+#def diagnostic(axes,p):
+##    axes['cl_TT'].errorbar(ttdat[:,0],ttdat[:,3],yerr=ttdat[:,4],fmt='.',label='WMAP7')
+#    axes['cl_TT'].plot(p['_model']['cl_TT'][:1200])
