@@ -1,7 +1,7 @@
 import os, sys
 from tempfile import mkdtemp
 from pycosmc.ini import read_ini
-from numpy import zeros, loadtxt
+from numpy import zeros, loadtxt, arange, vstack
 
 def init(p):
     global workdir, paramfile, params, outputfiles
@@ -28,7 +28,7 @@ def init(p):
 def get(p,derivative=0):
         if derivative!=0: raise NotImplementedError("CAMB model can't do derivatives yet.")
         
-        Alens = p.get('A_lens',1)
+        Alens = p.get('Alens',1)
         params['get_scalars'] = any(x in p['_models.get'] for x in ['cl_TT','cl_TE','cl_EE','cl_BB'])
         params['get_tensors'] = dotens = (p.get('r',0) != 0)
         params['get_transfers'] = dotrans = 'pk' in p['_models.get']
@@ -61,7 +61,7 @@ def get(p,derivative=0):
                 if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(params['tensor_output_file']).T))
                 if dotrans: result['pk'] = loadtxt(params['transfer_matterpower(1)'])
             except Exception as e:
-                raise Exception("Error reading CAMB outputfiles '"+str(e)+"'\nCAMB output:\n"+''.join(open(os.path.join(workdir,'camb.out')).readlines()))
+                raise Exception("Error reading CAMB output files.\n'"+str(e)+"'\nCAMB output:\n"+''.join(open(os.path.join(workdir,'camb.out')).readlines()))
         elif res!=2:
             raise Exception('CAMB returned error '+str(res)+':\n'+''.join(open(os.path.join(workdir,'camb.out')).readlines()))
         else: sys.exit()

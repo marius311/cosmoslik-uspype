@@ -35,16 +35,22 @@ def lnl(model,p,derivative=0):
     global cl
     
     #Get CMB + foreground model
-    cl = model['cl_TT'] 
+    cl = model['cl_TT']
     cl += p['Aps']*(arange(len(cl))/3000.)**2 #Hacked PS term until egfs module
     #if 'fgs' in model: cl += model['fgs'](eff_fr=eff_fr,fluxcut=fluxcut)
     cl = array([dot(cl[windowrange],w) for w in windows])
     
     #Apply windows and calculate likelihood
     dcl = spec-cl
+    
+    if p.get('diagnostic',False):
+        from matplotlib.pyplot import ion, errorbar, plot, draw, cla, yscale, ylim
+        ion()
+        cla()
+        errorbar(ells,spec,yerr=diag(sigma[0]),fmt='.',label='SPT K11')
+        plot(ells,cl)
+        yscale('log')
+        ylim(10,6e3)
+        draw()
+        
     return dot(dcl,cho_solve(sigma, dcl))/2
-
-#def diagnostic(axes,p):
-#    axes['cl_TT'].errorbar(ells,spec,yerr=diag(sigma[0]),fmt='.',label='SPT K11')
-#    axes['cl_TT'].plot(ells,cl)
-#    

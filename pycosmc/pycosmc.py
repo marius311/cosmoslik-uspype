@@ -17,12 +17,13 @@ def lnl(x,derivative=0,**kwargs):
     #Calculate derived parameters
     for d in derivers: d.add_derived(p)
     
-    #Evaluate models
-    p['_model'] = {}
-    for m in models: p['_model'].update(m.get(p))
-    
-    #Evaluate likelihoods
-    elnls = (l.lnl(p['_model'],p,derivative=derivative) for l in lnls)
+    #Check priors
+    if not all(p['*'+k][1] < p[k] < p['*'+k][2] for k in p['$SAMPLED']): elnls = [inf]
+    else: 
+        #Evaluate models and call likelihoods
+        p['_model'] = {}
+        for m in models: p['_model'].update(m.get(p))
+        elnls = (l.lnl(p['_model'],p,derivative=derivative) for l in lnls)
 
     return (sum(elnls) if derivative==0 else map(__add__, *elnls)), p
 
@@ -65,16 +66,17 @@ def pycosmc(p,**kwargs):
             if w1!=0: 
                 for (l,v) in zip(samples,(x1, w1, l1, p1)): l.append(v)
 
-            if w1!=0 and f!=None: 
+            if f!=None: 
                 f.write(' '.join(map(str,[l1,w1]+[p1[name] for name in p['$OUTPUT']]))+'\n')
                 f.flush()
                 
             if nsamp%p.get('update_frequency',1)==0:
-                print "%ssamples=%s best=%.2f acceptance=%.3f last={%s}" % \
+                print "%saccepted=%s/%i(%.1f%%) best=%.2f last={%s}" % \
                     ('' if mpi.get_rank()==0 else 'Chain %i: '%mpi.get_rank(),
-                     str(sum(samples.weight)),
+                     len(samples.weight),
+                     nsamp,
+                     100./mean(samples.weight),
                      min(samples.lnl+[inf]),
-                     1./mean(samples.weight),
                      ', '.join([('like:%.2f'%l1)]+['%s:%.4g'%(name,p1[name]) for name in p['$OUTPUT']])
                      ) 
 

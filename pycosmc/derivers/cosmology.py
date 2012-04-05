@@ -13,7 +13,7 @@ aliases = [
      ['omch2','omegach2'],
      ['omnh2','omeganh2','omnuh2','omeganuh2'],
      ['H0','H','hubble'],
-     ['Nnu_massless','massless_neutrinos'],
+     ['Nnu_massless','massless_neutrinos','Neff'],
      ['Nnu_massive','massive_neutrinos'],
      ['Yp','helium_fraction']
 ]

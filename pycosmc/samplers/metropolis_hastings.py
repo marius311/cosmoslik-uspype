@@ -34,7 +34,7 @@ def sample(x,lnl,**kwargs):
 
 def _mcmc(x,lnl,**kwargs):
     kwargs['_cov'] = initialize_covariance(kwargs)
-
+    
     (cur_lnl, cur_extra), cur_x, cur_weight = lnl(x,**kwargs), x, 1
     
     def update(v): 
@@ -44,7 +44,7 @@ def _mcmc(x,lnl,**kwargs):
         test_x = multivariate_normal(cur_x,kwargs['_cov'])
         test_lnl, test_extra = lnl(test_x, **kwargs)
                 
-        if (log(random()) < (cur_lnl-test_lnl)/len(x)):
+        if (log(random()) < cur_lnl-test_lnl):
             update((yield(sampletuple(cur_x, cur_weight, cur_lnl, cur_extra))))
             cur_lnl, cur_weight, cur_x, cur_extra = test_lnl, 1, test_x, test_extra
         else:
@@ -116,7 +116,7 @@ def initialize_covariance(params):
     if common: 
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [get_sampled(params),prop_names]))
         for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
-    return sigma/len(params['$SAMPLED'])
+    return sigma/len(params['$SAMPLED'])*params.get('proposal_scale',2.4)**2
    
 def get_covariance(data,weights=None):
     if (weights==None): return cov(data.T)
