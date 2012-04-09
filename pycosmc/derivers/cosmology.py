@@ -15,7 +15,8 @@ aliases = [
      ['H0','H','hubble'],
      ['Nnu_massless','massless_neutrinos','Neff'],
      ['Nnu_massive','massive_neutrinos'],
-     ['Yp','helium_fraction']
+     ['Yp','helium_fraction'],
+     ['tau','re_optical_depth']
 ]
 
 def add_aliases(aliases,p):

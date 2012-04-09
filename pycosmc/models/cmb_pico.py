@@ -16,12 +16,12 @@ def init(p):
 def get(p,derivative=0):
     if derivative!=0: raise NotImplementedError('CMB model derivative not implemented yet.')
     global num_pico, num_camb
-    if (num_pico+num_camb)%10==0: print 'PICO=%i CAMB=%i'%(num_pico,num_camb)
+    if (num_pico+num_camb)%10==0 and p.get('pico_verbose',False): print 'PICO=%i CAMB=%i'%(num_pico,num_camb)
     try: 
-        r = {k:(v[:,1] if 'cl' in k else v) for k,v in pico.get(**p).items()}
+        r = pico.get(**p)
         num_pico+=1
         return r
-    except Exception as e: 
+    except pypico.CantUsePICO as e: 
         num_camb+=1
         print e
         print 'Calling CAMB...'

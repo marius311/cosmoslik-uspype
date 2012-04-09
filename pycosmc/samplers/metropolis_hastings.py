@@ -101,7 +101,7 @@ def _mpi_mcmc(x,lnl,**kwargs):
 
 
 
-def get_sampled(params): return params['$SAMPLED']
+def get_sampled(params): return params['_sampled']
 
 def initialize_covariance(params):
     """Load the sigma, defaulting to diagonal entries from the WIDTH of each parameter."""
@@ -116,7 +116,8 @@ def initialize_covariance(params):
     if common: 
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [get_sampled(params),prop_names]))
         for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
-    return sigma/len(params['$SAMPLED'])*params.get('proposal_scale',2.4)**2
+    return sigma/len(params['_sampled'])*params.get('proposal_scale',2.4)**2
+   
    
 def get_covariance(data,weights=None):
     if (weights==None): return cov(data.T)

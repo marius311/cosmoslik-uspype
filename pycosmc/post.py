@@ -112,6 +112,51 @@ def get_covariance(data,weights=None):
         zdata = data-mean
         return dot(zdata.T*weights,zdata)/(sum(weights)-1)
 
+
+def likegrid(chains,ps=None,fig=None,colors=['b','g','r']):
+    if fig==None: fig=figure()
+    if type(chains)!=list: chains=[chains]
+    if ps==None: ps = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
+    colors=colors[:len(chains)]
+    figsize(20,20)
+    subplots_adjust(hspace=0,wspace=0)
+
+    c=chains[0]
+    lims = [(max(min(c[p]),mean(c[p])-4*std(c[p])),min(max(c[p]),mean(c[p])+4*std(c[p]))) for p in ps]
+    ticks = [[t for t in ts if l[0]<=t<=l[1]] for (ts,l) in zip((c.mean(ps)+c.std(ps)*transpose([[-2,0,2]])).T ,lims)]
+    n=len(ps)
+    axs=n*[n*[None]]
+    for (i,p1) in enumerate(ps):
+        for (j,p2) in enumerate(ps):
+            if (i<=j):
+                ax=axs[i][j]=subplot(n,n,j*n+i+1)
+                xlim(*lims[i])
+                ax.set_xticks(ticks[i])
+                if (i==j): 
+                    for (ch,col) in zip(chains,colors): 
+                        if p1 in ch: ch.like1d(p1,nbins=30,color=col)
+                    ax.set_yticks([])
+                    
+                elif (i<j): 
+                    for (ch,col) in zip(chains,colors): 
+                        if p1 in ch and p2 in ch: ch.like2d(p1,p2,filled=False,nbins=20,color=col)
+                    ylim(*lims[j])
+                    ax.set_yticks(ticks[j])
+                        
+                if i==0: 
+                    ylabel(p2)
+                    ax.set_yticklabels(['%.3g'%t for t in ticks[j]])
+                else: 
+                    ax.set_yticklabels([])
+                
+                if j==n-1: 
+                    xlabel(p1)
+                    ax.set_xticklabels(['%.3g'%t for t in ticks[i]])
+                else: 
+                    ax.set_xticklabels([])
+    return axs
+
+
 def confint2d(hist,which):
     """Return """
     H=sort(hist.ravel())[::-1]

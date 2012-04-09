@@ -12,13 +12,13 @@ samplers = []
 def lnl(x,derivative=0,**kwargs):
     
     #Convert vector x to nice named dictionary
-    p = kwargs.copy(); p.update(zip(kwargs['$SAMPLED'],x))
+    p = kwargs.copy(); p.update(zip(kwargs['_sampled'],x))
     
     #Calculate derived parameters
     for d in derivers: d.add_derived(p)
     
     #Check priors
-    if not all(p['*'+k][1] < p[k] < p['*'+k][2] for k in p['$SAMPLED']): elnls = [inf]
+    if not all(p['*'+k][1] < p[k] < p['*'+k][2] for k in p['_sampled']): elnls = [inf]
     else: 
         #Evaluate models and call likelihoods
         p['_model'] = {}
@@ -53,13 +53,13 @@ def pycosmc(p,**kwargs):
     samples = namedtuple('sampletuple',['x','weight','lnl','params'])([],[],[],[])
     for sampler in samplers:
         print "Starting %s sampler..."%sampler.__name__.split('.')[-1]
-        for (nsamp,s) in enumerate(sampler.sample([p[k] for k in p['$SAMPLED']],lnl,**p)):
+        for (nsamp,s) in enumerate(sampler.sample([p[k] for k in p['_sampled']],lnl,**p)):
             yield s
             x1, w1, l1, p1 = s
                           
             #Add derived if they're not in there
             if p1==None or not all(k in p1 for k in p['$OUTPUT']): 
-                p1 = p.copy(); p.update(p1); p.update(zip(p['$SAMPLED'],x1))
+                p1 = p.copy(); p.update(p1); p.update(zip(p['_sampled'],x1))
                 for d in derivers: d.add_derived(p1)
                 assert all(k in p1 for k in p['$OUTPUT']), "Derivers didn't calculate all the derived parameters. Check 'output' key or add derivers."
 
@@ -82,3 +82,6 @@ def pycosmc(p,**kwargs):
 
     if f!=None: f.close()
     
+    if 'dump_samples' in p:
+        import cPickle
+        with open(p['dump_samples'],'w') as f: cPickle.dump(tuple(samples), f, 2)

@@ -30,7 +30,7 @@ def read_ini(path):
                 
             params[k] = v
         
-    params["$SAMPLED"] = sampled_params 
+    params["_sampled"] = sampled_params 
     params["$OUTPUT"] = sampled_params + params.get("derived","").split()
     
     return params
@@ -38,7 +38,7 @@ def read_ini(path):
 def add_sampled_param(p, name, value, min, max, width, output=True):
     p[name]=value
     p['*'+name]=[value,min,max,width]
-    p['$SAMPLED'].append(name)
+    p['_sampled'].append(name)
     if output: p['$OUTPUT'].append(name)
     
     

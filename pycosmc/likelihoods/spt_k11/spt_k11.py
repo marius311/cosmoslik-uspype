@@ -35,7 +35,7 @@ def lnl(model,p,derivative=0):
     global cl
     
     #Get CMB + foreground model
-    cl = model['cl_TT']
+    cl = model['cl_TT'].copy()
     cl += p['Aps']*(arange(len(cl))/3000.)**2 #Hacked PS term until egfs module
     #if 'fgs' in model: cl += model['fgs'](eff_fr=eff_fr,fluxcut=fluxcut)
     cl = array([dot(cl[windowrange],w) for w in windows])

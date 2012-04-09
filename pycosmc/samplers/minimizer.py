@@ -4,7 +4,7 @@ from numpy.linalg.linalg import inv, LinAlgError
 from numpy.random import multivariate_normal
 
 
-def get_sampled(params): return params["$SAMPLED"]
+def get_sampled(params): return params["_sampled"]
 def get_outputted(params): return params["$OUTPUT"]
 
 def hess(f,x,dx):
@@ -40,12 +40,12 @@ def sample(x,lnl,**kwargs):
     print "Minimizing..."
     def flnl(x):
         l = lnl(x,derivative=0,**kwargs)[0]
-        print "like=%.2f step={%s}" % (l,', '.join(['%s:%.4g'%(k,v) for k,v in zip(kwargs['$SAMPLED'],x)])) 
+        print "like=%.2f step={%s}" % (l,', '.join(['%s:%.4g'%(k,v) for k,v in zip(kwargs['_sampled'],x)])) 
         return l
 
     if kwargs.get('minimizer.minimize',True):
         xopt, lnlopt = fmin(flnl,x,full_output=True,ftol=.01,xtol=1)[:2]
-    else
+    else:
         xopt = x
         
     yield xopt, inf, 0, None
@@ -55,7 +55,7 @@ def sample(x,lnl,**kwargs):
 #            from numdifftools import Hessian
 #            ih = Hessian(flnl,stepNom=xopt/10)(xopt)
             print "Computing hessian..."
-            h = hess(flnl,xopt,[kwargs['*'+k][-1]/10 for k in kwargs['$SAMPLED']])
+            h = hess(flnl,xopt,[kwargs['*'+k][-1]/10 for k in kwargs['_sampled']])
             if 'minimizer.hessian_file' in kwargs:
                 with open(kwargs['minimizer.hessian_file'],'w') as f:
                     f.write('# '+' '.join(get_sampled(kwargs))+'\n')

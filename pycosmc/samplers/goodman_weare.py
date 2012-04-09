@@ -16,7 +16,7 @@ class NamedEnsembleSampler(emcee.EnsembleSampler):
         return super(NamedEnsembleSampler, self).sample(vstack([pos0[k] for k in self.params]).T,**kwargs)
 
 
-def get_sampled(params): return params["$SAMPLED"]
+def get_sampled(params): return params["_sampled"]
 def get_outputted(params): return params["$OUTPUT"]
 
 def initialize_covariance(params):
