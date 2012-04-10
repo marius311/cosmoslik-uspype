@@ -10,9 +10,9 @@ def init(p):
     use = p.get('wmap.use',['TT','TE','EE','BB'])
     if 'EE' in use or 'TE' in use: assert 'TE' in use and 'EE' in use, "Must use either TE and EE, or neither."
     for x in use: p['_models.get'].add('cl_%s'%x)
-    pywmap.wmapinit()
-    
-#    ttdat = loadtxt(os.path.join("/home/marius/workspace/mspec/dat/external/wmap_binned_tt_spectrum_7yr_v4p1.txt"))
+    ttmin, ttmax = p.get('wmap.TT.lrange',(2,1200))
+    temin, temax = p.get('wmap.TE.lrange',(2,800))
+    pywmap.wmapinit(ttmin,ttmax,temin,temax)
 
 
 def lnl(model,p,derivative=0):
@@ -22,10 +22,12 @@ def lnl(model,p,derivative=0):
     
     for cl,x in zip([cltt,clte,clee,clbb],['TT','TE','EE','BB']):
         if x in use:
-            s = slice(*p.get('wmap.%s.lrange'%x,(2,1202)))
-            cl[s] = model['cl_%s'%x][s]
+            m = model['cl_%s'%x]
+            s = slice(0,min(len(m),len(cl)))
+            cl[s] = m[s]
 
-    return pywmap.wmaplnlike(cltt=cltt[2:],clte=clte[2:],clee=clee[2:],clbb=clbb[2:])
+    liketerms = pywmap.wmaplnlike(cltt=cltt[2:],clte=clte[2:],clee=clee[2:],clbb=clbb[2:])
+    return sum(liketerms)
 
 
 #def diagnostic(axes,p):
