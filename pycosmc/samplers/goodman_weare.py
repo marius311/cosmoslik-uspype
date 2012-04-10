@@ -1,67 +1,36 @@
-import emcee, re
 from numpy import *
 from collections import namedtuple
-from mpi import *
+import pycosmc.mpi as mpi
+from emcee.ensemble import EnsembleSampler
+from numpy.random import multivariate_normal
 from itertools import product
+import re
 
+def sample(x,lnl,**kwargs):
+    if '_cov' not in kwargs: kwargs['_cov'] = initialize_covariance(kwargs)
+    nwalkers = kwargs.get('walkers',100)
+    nsamp = kwargs.get('samples',10000)
+    
+    sampler=EnsembleSampler(nwalkers,len(x), lambda x: -lnl(x,**kwargs)[0], pool=namedtuple('pool',['map'])(mpi.mpi_map))
+    p0=mpi.mpi_consistent(multivariate_normal(x,kwargs['_cov'],size=nwalkers))
 
-class NamedEnsembleSampler(emcee.EnsembleSampler):
-    def __init__(self, nwalkers, params, lnprob, extra_params={},**kwargs):
-        self.params = params
-        dim = len(params)
-        lnprob2 = lambda x,*args: -lnprob(dict(extra_params,**dict(zip(params,x))),*args)
-        super(NamedEnsembleSampler, self).__init__(nwalkers,dim,lnprob2,**kwargs)
-        
-    def sample(self, pos0, **kwargs):
-        return super(NamedEnsembleSampler, self).sample(vstack([pos0[k] for k in self.params]).T,**kwargs)
-
-
-def get_sampled(params): return params["_sampled"]
-def get_outputted(params): return params["$OUTPUT"]
+    for pos,lnprob,_ in sampler.sample(p0,iterations=nsamp/nwalkers):
+        for cur_x, cur_lnl in zip(pos.copy(),lnprob.copy()):
+            if mpi.is_master(): yield cur_x, 1, cur_lnl, kwargs
+    
+def get_sampled(params): return params['_sampled']
 
 def initialize_covariance(params):
-    """
-    Load the covariance, defaulting to diagonal entries from the WIDTH of each parameter
-    """
-    
+    """Load the sigma, defaulting to diagonal entries from the WIDTH of each parameter."""
     v=params.get("proposal_matrix","")
     if (v==""): prop_names, prop = [], None
     else: 
-        with open(v) as file:
-            prop_names = re.sub("#","",file.readline()).split()
-            prop = genfromtxt(file)
-
-    params["$COV"] = diag([params["*"+name][3]**2 for name in get_sampled(params)])
+        with open(v) as f:
+            prop_names = re.sub("#","",f.readline()).split()
+            prop = genfromtxt(f)
+    sigma = diag([params["*"+name][3]**2 for name in get_sampled(params)])
     common = set(get_sampled(params)) & set(prop_names)
     if common: 
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [get_sampled(params),prop_names]))
-        for ((i,j),(k,l)) in idxs: params["$COV"][i,j] = prop[k,l]
-
-            
-
-
-def sample(p, lnl, mpi=False):
-    nwalkers = p.get('walkers',100)
-    nsamp = p.get('samples',10000)
-    initialize_covariance(p)
-    
-    lnl2 = lambda p: lnl(p) if all([p['*'+k][1]<p[k]<p['*'+k][2] for k in get_sampled(p)]) else inf
-    
-    sampler=NamedEnsembleSampler(nwalkers,get_sampled(p),lnl2,extra_params=p,pool=namedtuple('pool',['map'])(mpi_map) if mpi else None)
-    
-    p0=mpi_consistent(dict(zip(get_sampled(p),random.multivariate_normal([p[k] for k in get_sampled(p)],p['$COV'],size=nwalkers).T)))
-
-    if 'chain' in p and is_master(): file=open(p['chain'],'w')
-    else: file=None
-    
-    if file: file.write('#'+' '.join(get_sampled(p))+'\n')
-    for i,(pos,lnprob,state) in enumerate(sampler.sample(p0,iterations=nsamp/nwalkers),1):
-        if file:
-            savetxt(file,pos)
-            file.flush()
-            
-        if is_master(): print 'steps=%i approval=%.3f best=%.3f'%(i*nwalkers,sampler.acceptance_fraction.mean(),-sampler.lnprobability[:,:i].max())
-    
-    if file: file.close()
-    
-    return sampler
+        for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
+    return sigma/len(params['_sampled'])*params.get('proposal_scale',2.4)**2

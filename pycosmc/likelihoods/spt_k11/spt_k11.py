@@ -32,7 +32,6 @@ def init(p):
 
 def lnl(model,p,derivative=0):
     if derivative!=0: raise NotImplementedError("WMAP derivative not implemented yet.")
-    global cl
     
     #Get CMB + foreground model
     cl = model['cl_TT'].copy()
