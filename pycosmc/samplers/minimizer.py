@@ -5,7 +5,7 @@ from numpy.random import multivariate_normal
 
 
 def get_sampled(params): return params["_sampled"]
-def get_outputted(params): return params["$OUTPUT"]
+def get_outputted(params): return params["_output"]
 
 def hess(f,x,dx):
     def xdx(fi,i,fj,j):
@@ -39,7 +39,7 @@ def sample(x,lnl,**kwargs):
     
     print "Minimizing..."
     def flnl(x):
-        l = lnl(x,derivative=0,**kwargs)[0]
+        l = lnl(x,**kwargs)[0]
         print "like=%.2f step={%s}" % (l,', '.join(['%s:%.4g'%(k,v) for k,v in zip(kwargs['_sampled'],x)])) 
         return l
 

@@ -1,1 +1,1 @@
-from spt_k11 import init, lnl
+from spt_k11 import spt_k11

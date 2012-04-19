@@ -118,7 +118,7 @@ def likegrid(chains,ps=None,fig=None,colors=['b','g','r']):
     if type(chains)!=list: chains=[chains]
     if ps==None: ps = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
     colors=colors[:len(chains)]
-    figsize(20,20)
+    #figsize(20,20)
     subplots_adjust(hspace=0,wspace=0)
 
     c=chains[0]
