@@ -46,15 +46,16 @@ class cmb_camb(Model):
         pcamb = p.get('camb',{})
         
         Alens = p.get('Alens',1)
-        self.cambini['get_scalar_cls'] = any(x in required for x in ['cl_TT','cl_TE','cl_EE','cl_BB'])
+        self.cambini['get_scalar_cls'] = doscal = any(x in required for x in ['cl_TT','cl_TE','cl_EE','cl_BB'])
         self.cambini['get_tensor_cls'] = dotens = (p.get('r',0) != 0)
         self.cambini['get_transfer'] = dotrans = 'pk' in required
-        self.cambini['do_lensing'] = dolens = (Alens != 0) 
-        lmax = p['lmax']
+        self.cambini['do_lensing'] = dolens = (doscal and Alens != 0)
+        docl = doscal or dolens or dotens 
+        lmax = pcamb['lmax']
         self.cambini['l_max_scalar'] = lmax + (100 if dolens else 0)
         lmax_tens = self.cambini['l_max_tensor'] = p.get('lmax_tensor',lmax)
         
-        if not (self.cambini['get_scalar_cls'] or self.cambini['get_tensor_cls'] or self.cambini['get_transfer']): return {}
+        if not (doscal or dolens or dotens or dotrans): return {}
         
         #Write CAMB ini
         self.cambini.update(pcamb)
@@ -72,7 +73,6 @@ class cmb_camb(Model):
                     pcamb['ini'][k]=v
         
         result = {}
-        for x in ['TT','TE','EE','BB']: result['cl_%s'%x] = zeros(lmax)
 
         #Delete existing files
         for f in self.outputfiles+[os.path.join(self.workdir,'camb.out')]: 
@@ -84,7 +84,7 @@ class cmb_camb(Model):
         except: pcamb['output'] = None
         if res==0:
             try:
-                scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(self.cambini['scalar_output_file']).T))
+                if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],loadtxt(self.cambini['scalar_output_file']).T))
                 if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(self.cambini['lensed_output_file']).T))
                 if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],loadtxt(self.cambini['tensor_output_file']).T))
                 if dotrans: result['pk'] = loadtxt(self.cambini['transfer_matterpower(1)'])
@@ -94,12 +94,14 @@ class cmb_camb(Model):
             raise Exception('CAMB returned error '+str(res)+':\n'+pcamb['output'])
         else: sys.exit()
         
-        #Add scalar/lensed contribution
-        for x in ['TT','TE','EE']: result['cl_%s'%x][2:lmax] += ((1-Alens)*scal[x][:lmax-2] + Alens*lens[x][:lmax-2])
-        result['cl_BB'][2:lmax] += Alens*lens['BB'][:lmax-2]
+        #Combine cl contributions
+        if docl:
+            for x in ['TT','TE','EE','BB']: 
+                if 'cl_%s'%x in required:
+                    result['cl_%s'%x] = zeros(lmax)
+                    if doscal or dolens: 
+                        result['cl_%s'%x][2:lmax] += (((1-Alens)*scal[x][:lmax-2] if x!='BB' else 0)) + Alens*lens[x][:lmax-2]
+                    if dotens:
+                        result['cl_%s'%x][2:lmax_tens] += tens[x][:lmax_tens-2]
         
-        #Add tensor contribution
-        if p.get('r',0)!=0:
-            for x in ['TT','TE','EE','BB']: result['cl_%s'%x][2:lmax_tens] += tens[x][:lmax_tens-2]  
-            
         return result

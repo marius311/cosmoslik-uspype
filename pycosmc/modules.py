@@ -11,7 +11,7 @@ class Likelihood:
 
     def get_extra_params(self,p):
         """ Return a list of nuisance parameter names needed by this likelihood. """
-        return []
+        return {}
         
     def get_required_models(self,p):
         """ Return a list of model components needed by this likelihood, e.g. 'cl_TT' """

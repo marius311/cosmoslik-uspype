@@ -47,7 +47,7 @@ def pycosmc(p,**kwargs):
             print 'Initializing %s...'%i.__class__.__name__
             i.init(p)
             
-    p['_model.required']=set(chain(*(l.get_required_models(p) for l in lnls)))
+    p['_model.required']=set(chain(*[l.get_required_models(p) for l in lnls]))
     
     #Sampled and outputted parameters and covariance   
     for l in lnls:
