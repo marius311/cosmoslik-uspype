@@ -165,23 +165,30 @@ def confint2d(hist,which):
     return interp(which,cdf,H)
 
 
-def load_chain(filename):
+def load_chain(path):
     """
-    If filename is a chain, return a Chain object.
-    If filename is a prefix such that there exists filename_1, filename_2, etc... returns a Chains object
+    If path is a chain, return a Chain object.
+    If path is a prefix such that there exists path_1, path_2, etc... returns a Chains object
     """
-    def load_one_chain(filename):
-        with open(filename) as file:
-            names = re.sub("#","",file.readline()).split()
-            try: data = loadtxt(file)
-            except: data = None
-            
-        return Chain([(name,data[:,i] if data!=None else array([])) for (i,name) in enumerate(names)])
+    def load_one_chain(path):
+        if os.path.isdir(path):
+            chain = {}
+            for k in os.listdir(path):
+                try: chain[k]=loadtxt(os.path.join(path,k),usecols=[-1])
+                except: pass
+            return Chain(chain)
+        else:
+            with open(path) as file:
+                names = re.sub("#","",file.readline()).split()
+                try: data = loadtxt(file)
+                except: data = None
+                
+            return Chain([(name,data[:,i] if data!=None else array([])) for (i,name) in enumerate(names)])
     
-    dir = os.path.dirname(filename)
-    files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if f.startswith(os.path.basename(filename)+'_') or f==os.path.basename(filename)]
+    dir = os.path.dirname(path)
+    files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if f.startswith(os.path.basename(path)+'_') or f==os.path.basename(path)]
     if len(files)==1: return load_one_chain(files[0])
     elif len(files)>1: return Chains(filter(lambda c: c!={}, (load_one_chain(f) for f in files)))
-    else: raise IOError("File not found: "+filename) 
+    else: raise IOError("File not found: "+path) 
 
 

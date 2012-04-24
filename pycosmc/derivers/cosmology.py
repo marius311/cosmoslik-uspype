@@ -12,6 +12,8 @@ aliases = [
      ['omk','omegak','omega_k'],
      ['ombh2','omegabh2'],
      ['omch2','omegach2'],
+     ['omkh2','omegakh2'],
+     ['omvh2','omegavh2','omlh2','omegalh2'],
      ['omnh2','omeganh2','omnuh2','omeganuh2'],
      ['H0','H','hubble'],
      ['Nnu_massless','massless_neutrinos','Neff'],
@@ -25,7 +27,7 @@ def add_aliases(aliases,p):
     for a in aliases:
         h = {k:p[k] for k in a if k in p}
         if any(h):
-            if not all(h.values()[0]==v for v in h.values()): raise Exception("You have aliased keys with different values: "+str(h))
+            if not all(h.values()[0]==v or abs(h.values()[0]/v-1)<1e-4 for v in h.values()): raise Exception("You have aliased keys with different values: "+str(h))
             for k in a: p[k]=h.values()[0]
             
             
@@ -41,14 +43,19 @@ class cosmology(Deriver):
         if 'theta' in p:
             if all(k in p for k in ['ombh2','omch2', 'omk', 'omnuh2', 'w', 'Nnu_massless', 'Nnu_massive']):
                 h=p["h"]=theta2hubble(p["theta"],p["ombh2"],p["omch2"],p["omk"],p["omnuh2"],p["w"],p["Nnu_massless"],p["Nnu_massive"])/100.
-                for k in ['omb','omc','omnu','omv','omk']:
+                for k in ['omb','omc','omm','omnu','omv','omk']:
                     if k+'h2' in p: p[k]=p[k+'h2']/h**2
+                    elif k in p: p[k+'h2']=p[k]*h**2
                 p["omv"]=1-p['omb']-p['omc']-p['omnu']
+                p["omvh2"]=p["omv"]*h**2
+                p["omm"]=p["omb"]+p["omc"]
+                p["ommh2"]=p["omm"]*h**2
+                if p['omnuh2']==0: p['mnu']=0 #TODO: fix this
                 p["H0"]=100*h
         elif 'H0' in p or 'h' in p:
             if 'H0' in p: h=p['h']=p['H0']/100.
             else: p['H0']=p['h']*100; h=p['h']  
-            for k in ['omb','omc','omnu','omv','omk']:
+            for k in ['omb','omc','omm','omnu','omv','omk']:
                 if k in p: p[k+'h2']=p[k]*h**2
                 elif k+'h2' in p: p[k]=p[k+'h2']/h**2
             if 'omv' not in p: p['omv']=1-p['omb']-p['omc']-p['omnu']

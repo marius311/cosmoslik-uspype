@@ -6,7 +6,7 @@ import os
 class spt_k11(Likelihood):
 
     def get_required_models(self, p):
-        return ['cl_TT','pk']
+        return ['cl_TT']
 
 
     def get_extra_params(self,p):
@@ -35,7 +35,6 @@ class spt_k11(Likelihood):
         cl = model['cl_TT'].copy()
         if len(cl)<self.windowrange.stop: raise Exception("SPT K11 likelihood needs C_ell's to ell=%i"%self.windowrange.stop)
         cl += p['spt_k11','Aps']*(arange(len(cl))/3000.)**2 #Hacked PS term until egfs module
-        #if 'fgs' in model: cl += model['fgs'](eff_fr=eff_fr,fluxcut=fluxcut)
         cl = array([dot(cl[self.windowrange],w) for w in self.windows])
         
         #Apply windows and calculate likelihood

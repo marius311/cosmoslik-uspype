@@ -6,11 +6,10 @@ from pycosmc.modules import Deriver
 class bbn_consistency(Deriver):
 
     def init(self,p):
-        global rep
-        rep = bisplrep(*loadtxt(StringIO(dat)).T)
+        self.rep = bisplrep(*loadtxt(StringIO(dat)).T)
     
     def add_derived(self,p):    
-        p['Yp'] = bisplev(p['ombh2'],p['Neff']-3.046,rep)
+        p['Yp'] = bisplev(p['ombh2'],p['Neff']-3.046,self.rep)
 
 
 dat = \
