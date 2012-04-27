@@ -1,4 +1,4 @@
-default:
+default: pycosmc/likelihoods/spt_k11/bandpowers
 	cd pycosmc/derivers/hubble_theta && make
 	cd pycosmc/models/camb/camb && make
 	cd pycosmc/likelihoods/wmap && make
