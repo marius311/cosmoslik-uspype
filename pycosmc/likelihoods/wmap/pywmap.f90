@@ -9,9 +9,11 @@ logical :: pywmap_initalized
 
 contains
 
-    subroutine WMAPInit(tt_min,tt_max,te_min,te_max)
+    subroutine WMAPInit(tt_min,tt_max,te_min,te_max,data_dir)
         integer :: ttmin, ttmax, temin, temax
 
+		character(len=*) :: data_dir
+        WMAP_data_dir = trim(data_dir)
         ttmin = tt_min
         ttmax = tt_max
         temin = te_min

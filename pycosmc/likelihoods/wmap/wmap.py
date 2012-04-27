@@ -1,6 +1,7 @@
 from pywmap import pywmap
 from numpy import zeros
 from pycosmc.modules import Likelihood
+import os
 
 class wmap(Likelihood):
     
@@ -8,7 +9,9 @@ class wmap(Likelihood):
         self.use = p.get(('wmap','use'),['TT','TE','EE','BB'])
         ttmin, ttmax = p.get(('wmap','TT.lrange'),(2,1200))
         temin, temax = p.get(('wmap','TE.lrange'),(2,800))
-        pywmap.wmapinit(ttmin,ttmax,temin,temax)
+        datadir = p.get(('wmap','data_dir'),None)
+        if not datadir: raise Exception('Please specify the WMAP data directory with [wmap]{data_dir=..}')
+        pywmap.wmapinit(ttmin,ttmax,temin,temax,os.path.normpath(datadir)+'/')
     
     def get_required_models(self, p):
         return ['cl_%s'%x for x in self.use]

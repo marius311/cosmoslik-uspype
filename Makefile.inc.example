@@ -1,16 +1,17 @@
 #
 # Edit this file to contain your platform specific options and save it as Makefile.inc
 #
+#Fortran compiler
+F90 = gfortran
 
-
-#The folder which contains the WMAP likelihood
-WMAPDIR = 
+#Fortran options
+F90FLAGS = -O3 -fopenmp
 
 #Link flags needed to link the CFITSIO library 
-CFITSIO = 
+CFITSIO = -lcfitsio
 
 #Link flags needed to link the LAPACK library
-LAPACK = 
+LAPACK = -llapack
 
-#Extra flags needed for f2py
+#Additional f2py flags
 F2PYFLAGS = 
