@@ -1,4 +1,3 @@
-
 #Files containing evolution equations initial power spectrum module
 EQUATIONS     = equations
 POWERSPECTRUM = power_tilt
@@ -19,7 +18,6 @@ CAMBLIB       = libcamb.a
 
 #Shouldn't need to change anything else...
 
-F90FLAGS      = $(FFLAGS)
 HEALPIXLD     = -L$(HEALPIXDIR)/lib -lhealpix -L$(FITSDIR) -l$(FITSLIB)
 
 CAMBOBJ       = constants.o utils.o $(EXTCAMBFILES) subroutines.o inifile.o $(POWERSPECTRUM).o $(RECOMBINATION).o \

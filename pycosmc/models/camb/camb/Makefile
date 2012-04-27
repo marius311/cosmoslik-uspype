@@ -6,7 +6,6 @@ FISHER=
 #Edit for your compiler
 #Note there are many old ifc versions, some of which behave oddly
 
-
 #Intel , -openmp toggles mutli-processor:
 #note version 10.0 gives wrong result for lensed when compiled with -openmp [fixed in 10.1]
 #F90C     = ifort
@@ -20,8 +19,8 @@ FISHER=
 #if pre v4.3 add -D__GFORTRAN__
 #With v4.6+ try -Ofast -march=native -fopenmp
 #On my machine v4.5 is about 20% slower than ifort
-F90C     = gfortran
-FFLAGS =  -g
+#F90C     = gfortran
+#FFLAGS =  -g
 
 
 #Old Intel ifc, add -openmp for multi-processor (some have bugs):
@@ -80,4 +79,5 @@ else
 EXTCAMBFILES =
 endif
 
+include ../../../../Makefile.inc
 include ./Makefile_main
