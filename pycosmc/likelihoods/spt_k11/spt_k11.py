@@ -5,14 +5,33 @@ import os
 
 class spt_k11(Likelihood):
 
+    def lnl(self, p, model):
+        #Get CMB + foreground model
+        cl = model['cl_TT'][:self.lmax] + \
+             model['egfs']('cl_TT', lmax=self.lmax, freqs=self.freqs, fluxcut=self.fluxcut)
+        
+        #Apply window functions
+        cl = array([dot(cl[self.windowrange],w) for w in self.windows])
+            
+        if p.get('diagnostic',False):
+            from matplotlib.pyplot import ion, errorbar, plot, draw, cla, yscale, ylim
+            ion()
+            cla()
+            errorbar(self.ells,self.spec,yerr=diag(self.sigma[0]),fmt='.',label='SPT K11')
+            plot(self.ells,cl)
+            yscale('log')
+            ylim(10,6e3)
+            draw()
+
+            
+        #Apply windows and calculate likelihood
+        dcl = self.spec-cl
+        return dot(dcl,cho_solve(self.sigma, dcl))/2
+
+    
     def get_required_models(self, p):
-        return ['cl_TT']
+        return ['cl_TT', 'egfs']
 
-
-    def get_extra_params(self,p):
-        return {'Aps':[100, 0, 300, 10]}
-    
-    
     def init(self, p):
         
         self.datadir = os.path.join(os.path.dirname(__file__),'bandpowers')
@@ -26,28 +45,14 @@ class spt_k11(Likelihood):
         #Load windows
         self.windows = [loadtxt(os.path.join(self.datadir,'windows','window_0809','window_%i'%i))[:,1] for i in range(1,48)]
         self.windowrange = (lambda x: slice(min(x),max(x)+1))(loadtxt(os.path.join(self.datadir,'windows','window_0809','window_1'))[:,0])
+        self.lmax = self.windowrange.stop
         self.ells = array([dot(arange(10000)[self.windowrange],w) for w in self.windows])
+
+        self.freqs = (150,150)
+        self.fluxcut = 50
         
     
-    
-    def lnl(self, p, model):
-        #Get CMB + foreground model
-        cl = model['cl_TT'].copy()
-        if len(cl)<self.windowrange.stop: raise Exception("SPT K11 likelihood needs C_ell's to ell=%i"%self.windowrange.stop)
-        cl += p['spt_k11','Aps']*(arange(len(cl))/3000.)**2 #Hacked PS term until egfs module
-        cl = array([dot(cl[self.windowrange],w) for w in self.windows])
-        
-        #Apply windows and calculate likelihood
-        dcl = self.spec-cl
-        
-        if p.get('diagnostic',False):
-            from matplotlib.pyplot import ion, errorbar, plot, draw, cla, yscale, ylim
-            ion()
-            cla()
-            errorbar(self.ells,self.spec,yerr=diag(self.sigma[0]),fmt='.',label='SPT K11')
-            plot(self.ells,cl)
-            yscale('log')
-            ylim(10,6e3)
-            draw()
-            
-        return dot(dcl,cho_solve(self.sigma, dcl))/2
+
+
+
+

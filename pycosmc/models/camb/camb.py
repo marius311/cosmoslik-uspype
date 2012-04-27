@@ -3,9 +3,7 @@ from pycosmc.params import read_ini
 from numpy import zeros, loadtxt
 from pycosmc.modules import Model
 from cStringIO import StringIO
-from collections import defaultdict
 from subprocess import Popen, PIPE
-
 
 class camb(Model):
     
@@ -28,6 +26,7 @@ class camb(Model):
                    'transfer_filename(1)': 'trans',
                    'transfer_matterpower(1)':'mpk'
                    })
+        self.cambproc = Popen(["./camb"],cwd=self.cambdir,stdin=PIPE,stdout=PIPE,stderr=PIPE)
     
         #Read the CAMB source to find which parameters CAMB reads out of the ini file
         if pcamb.get('check_camb',False):
@@ -72,8 +71,10 @@ class camb(Model):
         result = {}
         cambini = '\n'.join('%s = %s'%(k,v) for k,v in pcamb['ini'].items()) + '\n$\n'
 
-        #Call CAMB and read output
-        output = read_camb_output(Popen(["./camb"],cwd=self.cambdir,stdin=PIPE,stdout=PIPE).communicate(input=cambini)[0])
+        #Send params to CAMB and read output
+        self.cambproc.stdin.write(cambini)
+        output = read_camb_output(self.cambproc.stdout, self.cambproc.stderr)
+        
         if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],output['scal'].T))
         if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],output['lens'].T))
         if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],output['tens'].T))
@@ -95,10 +96,13 @@ class camb(Model):
         return result        
 
 
-def read_camb_output(output):
-    result = defaultdict(lambda: '')
+def read_camb_output(stdout, stderr):
+    out, outdict = '', {}
     cur = None
-    for line in output.split('\n'):
+    while True:
+        line = stdout.readline()
+        out += (line+'\n')
+        if line=='': raise Exception('CAMB error.\n%s%s'%(out,'\n'.join(stderr.readlines())))
         if line.strip()=='$': break
         r = re.match('\[(.*)\]',line.strip())
         if r!=None: 
@@ -106,12 +110,13 @@ def read_camb_output(output):
         else:
             matches = list(re.finditer('\s*(.+?)\s*=\s*(.+?)(\s|$)',line))
             if len(matches)>0:
-                for m in matches: result[m.group(1)]=m.group(2)
+                for m in matches: outdict[m.group(1)]=m.group(2)
             else:
-                result[cur] += (line+'\n')
+                outdict[cur] = outdict.get(cur,'') + line + '\n'
                     
-    for k, v in result.iteritems():
-        try: result[k]=loadtxt(StringIO(v))
+    for k, v in outdict.iteritems():
+        try: outdict[k]=loadtxt(StringIO(v))
         except: pass
     
-    return result
+    return outdict
+

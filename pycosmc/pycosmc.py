@@ -23,9 +23,9 @@ def lnl(x,p):
         return inf, p
     else: 
         #Evaluate models and call likelihoods
-        p['_model'] = {}
+        p['_model'] = ModelDict()
         for m in models: p['_model'].update(m.get(p,p['_model.required']))
-        return (sum(l.lnl(p,p['_model']) for l in lnls),p)
+        return (sum(l.lnl(p,p['_model'].for_module(l)) for l in lnls),p)
 
 
 def pycosmc(p,**kwargs):
@@ -101,6 +101,17 @@ def pycosmc(p,**kwargs):
         with open(p['dump_samples'],'w') as f: cPickle.dump(tuple(samples), f, 2)
         
         
+class ModelDict(dict):
+    
+    def __getitem__(self,k):
+        try: return dict.__getitem__(self,k)
+        except: raise Exception("The likelihood module '%s' needs a model for '%s' but no models provided it. Try running 'pycosmc.py --help' to list available models."%(self._for_module,k))
+        
+    def for_module(self,l):
+        self._for_module = l.__class__.__name__
+        return self
+        
+
 def initialize_covariance(params):
     """Load the sigma, defaulting to diagonal entries from the WIDTH of each parameter."""
     v=params.get("proposal_matrix","")

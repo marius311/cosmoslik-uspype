@@ -18,7 +18,7 @@ class pico(Model):
     def get(self,p,required):
         if (self.num_pico+self.num_camb)%10==0 and p.get('pico_verbose',False): print 'PICO=%i CAMB=%i'%(self.num_pico,self.num_camb)
         try: 
-            r = self.pico.get(outputs=required,**p)
+            r = self.pico.get(outputs=[r for r in required if r in self.pico.outputs()],**p)
             self.camb.get(p,['z_drag'])
             self.num_pico+=1
             return r
