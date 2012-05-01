@@ -23,9 +23,9 @@ def lnl(x,p):
         return inf, p
     else: 
         #Evaluate models and call likelihoods
-        p['_model'] = ModelDict()
-        for m in models: p['_model'].update(m.get(p,p['_model.required']))
-        return (sum(l.lnl(p,p['_model'].for_module(l)) for l in lnls),p)
+        model = ModelDict()
+        for m in models: model.update(m.get(p,p['_model.required']))
+        return (sum(l.lnl(p,model.for_module(l)) for l in lnls),p)
 
 
 def pycosmc(p,**kwargs):
