@@ -97,6 +97,17 @@ class camb(Model):
 
 
 def read_camb_output(stdout, stderr):
+    """
+    Read the output which our modified version of CAMB spits out to stdout.
+    In general we match key = value pairs like, and sections for each spectra, like,
+    
+    [scalar]
+    2 1000 100 10 0
+    ...
+    
+    Returns a dictionary.
+    """
+    
     out, outdict = '', {}
     cur = None
     while True:

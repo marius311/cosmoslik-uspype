@@ -55,7 +55,7 @@ def _mcmc(x,lnl,p):
             if p.get('metropolis_hastings',{}).get('weighted_samples',True): cur_weight+=1
             else: update((yield(sampletuple(cur_x, cur_weight, cur_lnl, cur_extra))))
             
-            if p.get('metropolis_hastings',{}).get('rejected_samples',False): 
+            if p.get('metropolis_hastings',{}).get('rejected_samples',True): 
                 update((yield(sampletuple(test_x, 0, test_lnl, test_extra))))
             
             

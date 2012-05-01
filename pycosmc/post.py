@@ -12,6 +12,10 @@ class Chain(dict):
         super(Chain,self).__init__(*args,**kwargs)
         if 'weight' not in self: self['weight']=ones(len(self.values()[0]))
         
+    def copy(self):
+        """Deep copy the chain so post-processing, etc... works right"""
+        return Chain({k:v.copy() for k,v in self.iteritems()})
+        
     def params(self): 
         """Returns the parameters in this chain (i.e. the keys except 'lnl' and 'weight'"""
         return set(self.keys())-set(["lnl","weight"])
@@ -185,6 +189,7 @@ def load_chain(path):
                 
             return Chain([(name,data[:,i] if data!=None else array([])) for (i,name) in enumerate(names)])
     
+    if os.path.isdir(path): return load_one_chain(path)
     dir = os.path.dirname(path)
     files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if f.startswith(os.path.basename(path)+'_') or f==os.path.basename(path)]
     if len(files)==1: return load_one_chain(files[0])
