@@ -12,7 +12,7 @@ class camb(Model):
         self.cambdir = os.path.abspath(os.path.join(os.path.dirname(__file__),'camb'))
         pcamb.setdefault('executable',os.path.join(self.cambdir,'camb'))
         if not os.path.exists(pcamb['executable']): raise Exception("Could not find camb executable at '%s'"%pcamb['executable'])
-        self.cambdefs = read_ini(pcamb['defaults']) if 'defaults' in pcamb else {}
+        self.cambdefs = read_ini(pcamb.get('defaults',os.path.join(self.cambdir,'defaults.ini')))
         self.cambdefs.update(pcamb)
         self.cambdefs.update(
                   {'output_root':'',

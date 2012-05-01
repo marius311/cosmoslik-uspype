@@ -67,7 +67,7 @@ def pycosmc(p,**kwargs):
     samples = namedtuple('sampletuple',['x','weight','lnl','params'])([],[],[],[])
     for sampler in samplers:
         print "Starting %s sampler..."%sampler.__class__.__name__
-        for (nsamp,s) in enumerate(sampler.sample([p[k] for k in sampled],lnl,p)):
+        for (nsamp,s) in enumerate(sampler.sample([p[k] for k in sampled],lnl,p),1):
             yield s
             x1, w1, l1, p1 = s
                           
@@ -77,7 +77,7 @@ def pycosmc(p,**kwargs):
 #                for d in derivers: d.add_derived(p1)
 #                assert all(k in p1 for k in outputted), "Derivers didn't calculate all the derived parameters. Check 'output' key or add derivers."
 
-            if w1!=0: 
+            if w1!=0:
                 for (l,v) in zip(samples,(x1, w1, l1, p1)): l.append(v)
 
             if f!=None and w1!=0: 
@@ -88,8 +88,8 @@ def pycosmc(p,**kwargs):
                 print "%saccepted=%s/%i(%.1f%%) best=%.2f last={%s}" % \
                     ('' if mpi.get_rank()==0 else 'Chain %i: '%mpi.get_rank(),
                      len(samples.weight),
-                     sum(samples.weight),
-                     100./mean(samples.weight),
+                     nsamp,
+                     100*float(len(samples.weight))/nsamp,
                      min(samples.lnl+[inf]),
                      ', '.join([('like:%.2f'%l1)]+['%s:%.4g'%('.'.join(name),p1[name]) for name in outputted])
                      ) 

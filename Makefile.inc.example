@@ -2,7 +2,7 @@
 # Edit this file to contain your platform specific options and save it as Makefile.inc
 #
 #Fortran compiler
-F90 = gfortran
+F90C = gfortran
 
 #Fortran options
 F90FLAGS = -O3 -fopenmp
