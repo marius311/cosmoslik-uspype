@@ -182,7 +182,7 @@ def load_chain(path):
                 except: pass
             return Chain(chain)
         else:
-            pnames = [f for f in os.listdir(os.path.dirname(path)) if f.endswith('.paramnames') and os.path.basename(path).startswith(f[:-len('.paramnames')])]
+            pnames = [os.path.join(os.path.dirname(path),f) for f in os.listdir(os.path.dirname(path)) if f.endswith('.paramnames') and os.path.basename(path).startswith(f[:-len('.paramnames')])]
             if len(pnames)>1: raise Exception('Found multiple paramnames files for this chain; %s'%pnames)
             with open(path) as file:
                 if len(pnames)==0:
