@@ -31,7 +31,7 @@ class camb(Model):
         #Read the CAMB source to find which parameters CAMB reads out of the ini file
         if pcamb.get('check_camb',False):
             self.camb_keys=set()
-            for f in os.listdir(pcamb['source']):
+            for f in os.listdir(pcamb.get('source',self.cambdir)):
                 if f.endswith('90'):
                     with open(os.path.join(pcamb.get('source',self.cambdir),f)) as f:
                         for line in f:
@@ -59,9 +59,10 @@ class camb(Model):
 #        if not (doscal or dolens or dotens or dotrans): return {}
         
         #Write CAMB ini
+        cambini.update(pcamb)
         cambini.update(p)
-        if pcamb.get('check_camb',False): 
-            print 'Setting the following CAMB parameters: %s'%{k:self.cambini[k] for k in self.cambini if isinstance(k,str) and re.sub('\([0-9]*\)','',k) in self.camb_keys}
+        if pcamb.get('check_camb',False):
+            print 'Setting the following CAMB parameters: %s'%{k:cambini[k] for k in cambini if isinstance(k,str) and re.sub('\([0-9]*\)','',k) in self.camb_keys}
         
         for k,v in cambini.items():
             if isinstance(v,bool): pcamb['ini'][k] = 'T' if v else 'F'                   

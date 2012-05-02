@@ -369,7 +369,7 @@
                      '  Warning: YHe is the Helium fraction of baryons.', &
                      '  Your have:', P%yhe
              end if
-             if (P%Num_Nu_massive < 0.or.P%Num_Nu_massive > 3.1) then
+             if (P%Num_Nu_massive < 0.or.P%Num_Nu_massive > 10) then
                 OK = .false.
                 write(*,*) &
                      'Warning: Num_Nu_massive is strange:',P%Num_Nu_massive 
