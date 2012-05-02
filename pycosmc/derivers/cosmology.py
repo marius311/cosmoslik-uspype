@@ -5,6 +5,7 @@ from pycosmc.modules import Deriver
 aliases = [
      ['As','A_s','scalar_amp(1)'],
      ['ns','n_s','Ns','scalar_spectral_index(1)'],
+     ['nrun','n_run','scalar_nrun(1)']
      ['omb','omegab','omega_baryon','om_b','omega_b'],
      ['omc','omegac','omega_c'],
      ['omn','omegan','omega_n','omnu','omeganu','omega_nu'],
