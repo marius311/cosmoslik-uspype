@@ -182,16 +182,23 @@ def load_chain(path):
                 except: pass
             return Chain(chain)
         else:
+            pnames = [f for f in os.listdir(os.path.dirname(path)) if f.endswith('.paramnames') and os.path.basename(path).startswith(f[:-len('.paramnames')])]
+            if len(pnames)>1: raise Exception('Found multiple paramnames files for this chain; %s'%pnames)
             with open(path) as file:
-                names = re.sub("#","",file.readline()).split()
-                try: data = loadtxt(file)
-                except: data = None
+                if len(pnames)==0:
+                    names = re.sub("#","",file.readline()).split()
+                else:
+                    with open(pnames[0]) as pf:
+                        names = ['weight','lnl']+[line.split()[0] for line in pf]
+                try: data = loadtxt(file).T
+                except: data = [array([])]*len(names)
                 
-            return Chain([(name,data[:,i] if data!=None else array([])) for (i,name) in enumerate(names)])
+            return Chain(zip(names,data))
     
-    if os.path.isdir(path): return load_one_chain(path)
+    path=os.path.abspath(path)
     dir = os.path.dirname(path)
-    files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if f.startswith(os.path.basename(path)+'_') or f==os.path.basename(path)]
+    files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if re.match(os.path.basename(path)+'_[0-9]+',f) or f==os.path.basename(path)]
+    print files
     if len(files)==1: return load_one_chain(files[0])
     elif len(files)>1: return Chains(filter(lambda c: c!={}, (load_one_chain(f) for f in files)))
     else: raise IOError("File not found: "+path) 
