@@ -14,7 +14,7 @@ private
                          kappa = 8.0_r8b*pi*G,    c = 2.99792458e8_r8b, & 
                    sigma_boltz = 5.67051e-8_r8b
 
-   real(r8b), parameter :: tcmb = 2.726_r8b,  &
+   real(r8b), parameter :: tcmb = 2.725_r8b,  &
                         omkflat = 5.0e-7_r8b, & !! When to consider model flat
                       TOLERANCE = 1.0e-5_r8b
 

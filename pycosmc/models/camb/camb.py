@@ -52,11 +52,10 @@ class camb(Model):
         cambini['get_transfer'] = dotrans = 'pk' in required
         cambini['do_lensing'] = dolens = (doscal and Alens != 0)
         docl = doscal or dolens or dotens 
-        lmax = pcamb['lmax']
-        cambini['l_max_scalar'] = lmax + (100 if dolens else 0)
-        lmax_tens = cambini['l_max_tensor'] = p.get('lmax_tensor',lmax)
-        
-#        if not (doscal or dolens or dotens or dotrans): return {}
+        if docl:
+            lmax = pcamb['lmax']
+            cambini['l_max_scalar'] = lmax + (100 if dolens else 0)
+            lmax_tens = cambini['l_max_tensor'] = p.get('lmax_tensor',lmax)
         
         #Write CAMB ini
         cambini.update(pcamb)
@@ -100,13 +99,13 @@ class camb(Model):
 def read_camb_output(stdout, stderr):
     """
     Read the output which our modified version of CAMB spits out to stdout.
-    In general we match key = value pairs like, and sections for each spectra, like,
+    In general we match key = value pairs, and sections for each spectra, e.g.,
     
     [scalar]
     2 1000 100 10 0
     ...
     
-    Returns a dictionary.
+    Result returned in dictionary form.
     """
     
     out, outdict = '', {}

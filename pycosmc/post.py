@@ -117,7 +117,7 @@ def get_covariance(data,weights=None):
         return dot(zdata.T*weights,zdata)/(sum(weights)-1)
 
 
-def likegrid(chains,ps=None,fig=None,colors=['b','g','r']):
+def likegrid(chains,ps=None,fig=None,colors=['b','g','r'],nbins1d=30, nbins2d=20):
     if fig==None: fig=figure()
     if type(chains)!=list: chains=[chains]
     if ps==None: ps = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
@@ -138,12 +138,12 @@ def likegrid(chains,ps=None,fig=None,colors=['b','g','r']):
                 ax.set_xticks(ticks[i])
                 if (i==j): 
                     for (ch,col) in zip(chains,colors): 
-                        if p1 in ch: ch.like1d(p1,nbins=30,color=col)
+                        if p1 in ch: ch.like1d(p1,nbins=nbins1d,color=col)
                     ax.set_yticks([])
                     
                 elif (i<j): 
                     for (ch,col) in zip(chains,colors): 
-                        if p1 in ch and p2 in ch: ch.like2d(p1,p2,filled=False,nbins=20,color=col)
+                        if p1 in ch and p2 in ch: ch.like2d(p1,p2,filled=False,nbins=nbins2d,color=col)
                     ylim(*lims[j])
                     ax.set_yticks(ticks[j])
                         
@@ -169,28 +169,32 @@ def confint2d(hist,which):
     return interp(which,cdf,H)
 
 
-def load_chain(path):
+def load_chain(path,paramnames=None):
     """
     If path is a chain, return a Chain object.
     If path is a prefix such that there exists path_1, path_2, etc... returns a Chains object
     """
     def load_one_chain(path):
         if os.path.isdir(path):
+            if paramnames!=None: raise Exception("Can't specify custom parameter names if loading chain from a directory.")
             chain = {}
             for k in os.listdir(path):
                 try: chain[k]=loadtxt(os.path.join(path,k),usecols=[-1])
                 except: pass
             return Chain(chain)
         else:
-            pnames = [os.path.join(os.path.dirname(path),f) for f in os.listdir(os.path.dirname(path)) if f.endswith('.paramnames') and os.path.basename(path).startswith(f[:-len('.paramnames')])]
-            if len(pnames)>1: raise Exception('Found multiple paramnames files for this chain; %s'%pnames)
-            with open(path) as file:
-                if len(pnames)==0:
-                    names = re.sub("#","",file.readline()).split()
-                else:
-                    with open(pnames[0]) as pf:
-                        names = ['weight','lnl']+[line.split()[0] for line in pf]
-                try: data = loadtxt(file).T
+            names = None
+            if paramnames==None:
+                pnfiles = [os.path.join(os.path.dirname(path),f) for f in os.listdir(os.path.dirname(path)) if f.endswith('.paramnames') and os.path.basename(path).startswith(f[:-len('.paramnames')])]
+                if len(pnfiles)>1: raise Exception('Found multiple paramnames files for this chain; %s'%pnfiles)
+            
+            if paramnames or pnfiles:
+                with open(paramnames or pnfiles[0]) as f:
+                    names = ['weight','lnl']+[line.split()[0] for line in f]
+                    
+            with open(path) as f:
+                if names==None: names = re.sub("#","",f.readline()).split()
+                try: data = loadtxt(f).T
                 except: data = [array([])]*len(names)
                 
             return Chain(zip(names,data))
