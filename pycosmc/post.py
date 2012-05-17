@@ -73,11 +73,15 @@ class Chain(dict):
         
     def like1d(self,p,**kw): 
         """Plots 1D likelihood contours for a parameter."""
-        likelihoodplot1d(self[p],weights=self["weight"],**kw)
+        like1d(self[p],weights=self["weight"],**kw)
         
     def like2d(self,p1,p2,**kw): 
         """Plots 2D likelihood contours for a pair of parameters."""
-        likelihoodplot2d(self[p1], self[p2], weights=self["weight"], **kw)
+        like2d(self[p1], self[p2], weights=self["weight"], **kw)
+        
+    def likegrid(self,**kwargs):
+        """Plot several 2d likelihood contours."""
+        likegrid(self, **kwargs)
 
         
         
@@ -96,13 +100,13 @@ class Chains(list):
         """Plot the value of a parameter as a function of sample number for each chain."""
         for c in self: c.plot(param)
     
-def likelihoodplot2d(datx,daty,weights=None,nbins=15,which=[.68,.95],filled=False,color='k',**kw):
+def like2d(datx,daty,weights=None,nbins=15,which=[.68,.95],filled=False,color='k',**kw):
     if (weights==None): weights=ones(len(datx))
     H,xe,ye = histogram2d(datx,daty,nbins,weights=weights)
     xem, yem = movavg(xe,2), movavg(ye,2)
     (contourf if filled else contour)(xem,yem,transpose(H),levels=confint2d(H, which[::-1]+[0]),colors=color,**kw)
     
-def likelihoodplot1d(dat,weights=None,nbins=30,range=None,maxed=True,**kw):
+def like1d(dat,weights=None,nbins=30,range=None,maxed=True,**kw):
     if (weights==None): weights=ones(len(dat))
     H, xe = histogram(dat,bins=nbins,weights=weights,normed=True,range=range)
     if maxed: H=H/max(H)
