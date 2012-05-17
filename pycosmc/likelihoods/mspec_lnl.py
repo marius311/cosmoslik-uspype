@@ -19,11 +19,14 @@ class mspec_lnl(Likelihood):
         self.signal = M.load_signal(self.mp).dl()
         
         #All the things we the per-frequency C_ell signal
-        self.process_signal = lambda s: s.lincombo(self.mp['cleaning']) \
-                                         .rescaled(self.mp.get('rescale',1)) \
-                                         .sliced(self.mp['binning'](slice(*self.mp["lrange"])))
+        def process_signal(s):
+            if 'cleaning' in self.mp: s=s.lincombo(self.mp['cleaning'])
+            return s.rescaled(self.mp.get('rescale',1)) \
+                    .sliced(self.mp['binning'](slice(*self.mp["lrange"])))
+                    
+        self.process_signal = process_signal
         
-        self.processed_signal = self.process_signal(self.signal)
+        self.processed_signal = process_signal(self.signal)
         (self.signal_matrix_spec, self.signal_matrix_cov) = self.processed_signal.get_as_matrix(ell_blocks=True)
         
         self.signal_matrix_cov = cho_factor(self.signal_matrix_cov)
