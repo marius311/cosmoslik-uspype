@@ -91,7 +91,7 @@ def pycosmc(p,**kwargs):
                      nsamp,
                      100*float(len(samples.weight))/nsamp,
                      min(samples.lnl+[inf]),
-                     ', '.join([('like:%.2f'%l1)]+['%s:%.4g'%('.'.join(name),p1[name]) for name in outputted])
+                     ', '.join([('like:%.2f'%l1)]+['%s:%.4g'%('.'.join(name),p1.get(name,float('nan'))) for name in outputted])
                      ) 
 
     if f!=None: f.close()
