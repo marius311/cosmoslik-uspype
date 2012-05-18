@@ -126,4 +126,4 @@ def initialize_covariance(params):
     if common: 
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [sampled.keys(),prop_names]))
         for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
-    return sigma/len(sampled)*params.get('proposal_scale',2.4)**2
+    return sigma

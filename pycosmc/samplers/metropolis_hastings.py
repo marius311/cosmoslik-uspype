@@ -45,7 +45,7 @@ def _mcmc(x,lnl,p):
         if v!=None: p.update(v)
         
     for _ in range(p.get("samples",100)):
-        test_x = multivariate_normal(cur_x,p['_cov'])
+        test_x = multivariate_normal(cur_x,p['_cov']/len(x)*p.get('proposal_scale',2.4)**2)
         test_lnl, test_extra = lnl(test_x, p)
                 
         if (log(random()) < cur_lnl-test_lnl):
@@ -78,7 +78,7 @@ def _mpi_mcmc(x,lnl,p):
                 
                 if (p.get("proposal_update",True) 
                     and sum(weights[source-1])>p.get('proposal_update_start',1000)):
-                    comm.send({"_cov":get_new_proposal(samples,weights)},dest=source)
+                    comm.send({"_cov":get_new_cov(samples,weights)},dest=source)
                 else: comm.send({},dest=source)
                 comm.send(None,dest=source)
 
@@ -110,7 +110,7 @@ def get_covariance(data,weights=None):
         return dot(zdata.T*weights,zdata)/(sum(weights)-1)
 
 
-def get_new_proposal(samples,weights=None):
+def get_new_cov(samples,weights=None):
     """
     shape(samples) = (nchains,nsamples,nparams)
     shape(weights) = (nchains,nsamples)
