@@ -90,8 +90,9 @@ class camb(Model):
                     if dotens:
                         result['cl_%s'%x][2:lmax_tens] += tens[x][:lmax_tens-2]
         
-        #TODO: figure out where to put z_drag
+        #TODO: figure out where to put this stuff
         p['z_drag'] = output['z_drag']
+        p['rs_drag'] = output['rs_drag']
         
         return result        
 
