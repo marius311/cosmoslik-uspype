@@ -1,6 +1,6 @@
 import os, sys, re
 from pycosmc.params import read_ini
-from numpy import zeros, loadtxt
+from numpy import zeros, loadtxt, hstack
 from pycosmc.modules import Model
 from cStringIO import StringIO
 from subprocess import Popen, PIPE
@@ -47,7 +47,7 @@ class camb(Model):
         
         Alens = p.get('Alens',1)
         cambini = pcamb['ini'] = dict(self.cambdefs)
-        cambini['get_scalar_cls'] = doscal = any(x in required for x in ['cl_TT','cl_TE','cl_EE','cl_BB'])
+        cambini['get_scalar_cls'] = doscal = any(x in required for x in ['cl_TT','cl_TE','cl_EE','cl_BB','cl_pp','cl_pT'])
         cambini['get_tensor_cls'] = dotens = (p.get('r',0) != 0)
         cambini['get_transfer'] = dotrans = 'pk' in required
         cambini['do_lensing'] = dolens = (doscal and Alens != 0)
@@ -89,7 +89,10 @@ class camb(Model):
                         result['cl_%s'%x][2:lmax] += (((1-Alens)*scal[x][:lmax-2] if x!='BB' and doscal else 0)) + (Alens*lens[x][:lmax-2] if dolens else 0)
                     if dotens:
                         result['cl_%s'%x][2:lmax_tens] += tens[x][:lmax_tens-2]
-        
+            if dolens:
+                if 'cl_pp' in required: result['cl_pp'] = hstack([[0,0],scal['pp'][:lmax-2]])
+                if 'cl_pT' in required: result['cl_pT'] = hstack([[0,0],scal['pT'][:lmax-2]])
+
         #TODO: figure out where to put this stuff
         p['z_drag'] = output['z_drag']
         p['rs_drag'] = output['rs_drag']
