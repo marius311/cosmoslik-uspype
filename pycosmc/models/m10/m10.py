@@ -1,5 +1,5 @@
 from pycosmc.modules import Model
-from numpy import arange, ones
+from numpy import arange, ones, zeros
 
 class m10(Model):
     
@@ -13,7 +13,7 @@ class m10(Model):
         pm10 = p.get('m10',{})
         
         def get_m10_egfs(spectra, fluxcut, freqs, lmax):
-            if spectra != 'cl_TT': return 0
+            if spectra != 'cl_TT': return zeros(lmax)
             
             fr1, fr2 = freqs
             
