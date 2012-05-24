@@ -32,8 +32,8 @@ class planck_lens(Likelihood):
         """
         clpp = model['cl_pp'][slice(*self.lrange)]
 
-        A_data = 1  # Can get Planck value in Jan 23, 2012 email from DH 
-        sigma_A_data = 0.06 #(or slide 16 of  http://wiki.planck.fr/index.php/Meetings/2012-01-18?action=download&upname=jplensing.pdf)
+        A_data = .992  # Can get Planck value in Jan 23, 2012 email from DH 
+        sigma_A_data = 0.061 #(or slide 16 of  http://wiki.planck.fr/index.php/Meetings/2012-01-18?action=download&upname=jplensing.pdf)
     
         A_model = sum(self.clpp_bestfit * clpp * (2.*arange(*self.lrange)+1.) / 2. / (self.plm_norm**2 * self.plm_nhl)**2) / self.denominator
     
