@@ -1,4 +1,4 @@
-from numpy import log, mean, array, sqrt, diag, genfromtxt, sum, dot, cov
+from numpy import log, mean, array, sqrt, diag, genfromtxt, sum, dot, cov, inf
 from random import random
 from numpy.random import multivariate_normal
 import pycosmc.mpi as mpi, re, time
@@ -38,9 +38,9 @@ class metropolis_hastings(Sampler):
     
     
 def _mcmc(x,lnl,p):
-    
-    (cur_lnl, cur_extra), cur_x, cur_weight = lnl(x,p), x, 1
-    
+   
+    cur_lnl, cur_weight, cur_x = inf, 0, x
+
     def update(v): 
         if v!=None: p.update(v)
         
@@ -49,7 +49,7 @@ def _mcmc(x,lnl,p):
         test_lnl, test_extra = lnl(test_x, p)
                 
         if (log(random()) < cur_lnl-test_lnl):
-            update((yield(sampletuple(cur_x, cur_weight, cur_lnl, cur_extra))))
+            if cur_lnl!=inf: update((yield(sampletuple(cur_x, cur_weight, cur_lnl, cur_extra))))
             cur_lnl, cur_weight, cur_x, cur_extra = test_lnl, 1, test_x, test_extra
         else:
             if p.get('metropolis_hastings',{}).get('weighted_samples',True): cur_weight+=1
