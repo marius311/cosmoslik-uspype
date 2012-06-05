@@ -54,8 +54,8 @@ class camb(Model):
         docl = doscal or dolens or dotens 
         if docl:
             lmax = pcamb['lmax']
-            cambini['l_max_scalar'] = lmax + (100 if dolens else 0)
-            lmax_tens = cambini['l_max_tensor'] = p.get('lmax_tensor',lmax)
+            cambini['l_max_scalar'] = lmax + 50 + (100 if dolens else 0)
+            lmax_tens = cambini['l_max_tensor'] = p.get('lmax_tensor',lmax + 50)
         
         #Write CAMB ini
         cambini.update(pcamb)
