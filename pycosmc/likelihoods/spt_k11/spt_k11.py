@@ -1,6 +1,7 @@
 from numpy import array, fromstring, loadtxt, dot, arange, diag
 from scipy.linalg import cho_factor, cho_solve
 from pycosmc.modules import Likelihood
+from itertools import takewhile
 import os
 
 class spt_k11(Likelihood):
@@ -40,10 +41,19 @@ class spt_k11(Likelihood):
         with open(os.path.join(self.datadir,'Spectrum_spt20082009.newdat')) as f:
             while 'TT' not in f.readline(): pass
             self.spec=array([fromstring(f.readline(),sep=' ')[1] for _ in range(47)])
-            self.sigma=cho_factor(array([fromstring(f.readline(),sep=' ') for _ in range(94)])[47:])
+            self.sigma=array([fromstring(f.readline(),sep=' ') for _ in range(94)])[47:]
             
         #Load windows
         self.windows = [loadtxt(os.path.join(self.datadir,'windows','window_0809','window_%i'%i))[:,1] for i in range(1,48)]
+        
+        if ('spt_k11','lmin') in p:
+            bmin = sum(1 for _ in takewhile(lambda x: x<p['spt_k11','lmin'], (sum(1 for _ in takewhile(lambda x: abs(x)<.001,w) ) for w in self.windows)))
+            self.spec = self.spec[bmin:]
+            self.sigma = self.sigma[bmin:,bmin:]
+            self.windows = self.windows[bmin:]
+        
+        self.sigma = cho_factor(self.sigma)
+        
         self.windowrange = (lambda x: slice(min(x),max(x)+1))(loadtxt(os.path.join(self.datadir,'windows','window_0809','window_1'))[:,0])
         self.lmax = self.windowrange.stop
         self.ells = array([dot(arange(10000)[self.windowrange],w) for w in self.windows])
