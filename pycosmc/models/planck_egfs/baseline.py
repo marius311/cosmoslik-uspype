@@ -1,5 +1,5 @@
 from pycosmc.modules import Model
-from numpy import arange, ones, loadtxt, vstack, hstack, pi
+from numpy import arange, ones, loadtxt, vstack, hstack, pi, exp
 import os
 
 class baseline(Model):
@@ -49,12 +49,29 @@ class baseline(Model):
             
             fr1, fr2 = freqs
             
-            clustered_template = (lambda tilt: hstack([self.clustered_template[:1500]*(1500/3000.)**tilt,(arange(1500,10001)/3000.)**tilt]))(p_egfs['dgcl','tilt'])
+            tilted_clust = (lambda tilt: hstack([self.clustered_template[:1500]*(1500/3000.)**tilt,(arange(1500,10001)/3000.)**tilt]))(p_egfs['dgcl','tilt'])
             
-            return sum([p_egfs['dgpo','amp'] * (arange(lmax)/3000.)**2 * (fr1*fr2/p_egfs['dgpo','norm_fr']**2)**p_egfs['dgpo','alpha'],
-                        p_egfs['radio','amp'] * (arange(lmax)/3000.)**2 * (fr1*fr2/p_egfs['radio','norm_fr']**2)**p_egfs['radio','alpha'],
-                        p_egfs['dgcl','amp'] * clustered_template[:lmax] * (fr1*fr2/p_egfs['dgcl','norm_fr']**2)**p_egfs['dgcl','alpha'],
-                        p_egfs['tsz','amp'] * self.tsz_template[:lmax],
+            return sum([p_egfs['dgpo','amp'] * (arange(lmax)/3000.)**2 * plaw_dep(fr1['dust'], fr2['dust'], p_egfs['dgpo','norm_fr'], p_egfs['dgpo','alpha']),
+                        p_egfs['dgcl','amp'] * tilted_clust[:lmax] * plaw_dep(fr1['dust'], fr2['dust'], p_egfs['dgcl','norm_fr'], p_egfs['dgcl','alpha']),
+                        p_egfs['radio','amp'] * (arange(lmax)/3000.)**2 * plaw_dep(fr1['radio'], fr2['radio'], p_egfs['radio','norm_fr'], p_egfs['radio','alpha']),
+                        p_egfs['tsz','amp'] * self.tsz_template[:lmax] * tszdep(fr1['tsz'],fr2['tsz'],p_egfs['tsz','norm_fr']),
                         p_egfs['ksz','amp'] * self.ksz_template[:lmax]])
 
         return {'egfs':get_egfs}
+    
+    
+def dBdT(fr1,fr0):
+    """ dB/dT at T_CMB """
+    dBdT,dBdT0 = map((lambda fr: (lambda x0: x0**4 * exp(x0) / (exp(x0)-1)**2)(fr/57.78)),[fr1,fr0])
+    return dBdT/dBdT0  
+  
+def tszdep(fr1,fr2,fr0):
+    """The tSZ frequency dependence."""
+    t1,t2,t0 = map(lambda fr: (lambda x0: x0*(exp(x0)+1)/(exp(x0)-1) - 4)(fr/56.78),[fr1,fr2,fr0])
+    return t1*t2/t0**2
+
+def plaw_dep(fr1,fr2,fr0,alpha):
+    """A power-law frequency dependence."""
+    return (fr1*fr2/fr0**2)**alpha / dBdT(fr1,fr0) / dBdT(fr2,fr0)
+
+
