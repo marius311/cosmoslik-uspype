@@ -7,28 +7,41 @@ import os
 class spt_k11(Likelihood):
 
     def lnl(self, p, model):
-        #Get CMB + foreground model
-        cl = model['cl_TT'][:self.lmax] + \
-             model['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq,self.freq), fluxcut=self.fluxcut)
-        
-        #Apply window functions
-        cl = array([dot(cl[self.windowrange],w) for w in self.windows])
+            
+        cl = self.get_cl_model(model)
             
         if p.get('diagnostic',False):
-            from matplotlib.pyplot import ion, errorbar, plot, draw, cla, yscale, ylim
+            from matplotlib.pyplot import ion, figure, draw, cla
             ion()
             cla()
-            errorbar(self.ells,self.spec,yerr=diag(self.sigma[0]),fmt='.',label='SPT K11')
-            plot(self.ells,cl)
-            yscale('log')
-            ylim(10,6e3)
+            ax = figure().add_subplot(111)
+            self.plot(ax,'cl_TT',cl)
+            ax.set_yscale('log')
+            ax.set_ylim(10,6e3)
             draw()
-
             
         #Apply windows and calculate likelihood
         dcl = self.spec-cl
         return dot(dcl,cho_solve(self.sigma, dcl))/2
 
+
+    def plot(self,ax,key,cl=None,p=None):
+        if cl==None: cl = self.get_cl_model(p['_model'])
+        if key=='cl_TT':
+            ax.errorbar(self.ells,self.spec,yerr=diag(self.sigma[0]),fmt='.',label='SPT K11')
+            ax.plot(self.ells,cl)
+        elif key=='delta_cl_TT':
+            ax.errorbar(self.ells,self.spec-cl,yerr=diag(self.sigma[0]),fmt='.',label='SPT K11')
+            ax.plot([self.ells[0],self.ells[-1]],[0]*2)
+
+
+    def get_cl_model(self,model):
+        #Get CMB + foreground model
+        cl = model['cl_TT'][:self.lmax] + \
+             model['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq,self.freq), fluxcut=self.fluxcut)
+        
+        #Apply window functions
+        return array([dot(cl[self.windowrange],w) for w in self.windows])
     
     def get_required_models(self, p):
         return ['cl_TT', 'egfs']

@@ -5,18 +5,13 @@ from itertools import product, chain
 import mpi, re
 import params
 
-derivers = []
-models = []
-lnls = []
-samplers = []
-
 def lnl(x,p):
     
     #Convert vector x to nice named dictionary
     p = p.copy(); p.update(zip(p.get_all_sampled().keys(),x))
     
     #Calculate derived parameters
-    for d in derivers: d.add_derived(p)
+    for d in p['_derivers'].values(): d.add_derived(p)
     
     #Check priors
     if not all(v[1] < p[k] < v[2] for k, v in p.get_all_sampled().items()): 
@@ -24,8 +19,8 @@ def lnl(x,p):
     else: 
         #Evaluate models and call likelihoods
         p['_model'] = ModelDict()
-        for m in models: p['_model'].update(m.get(p,p['_model.required']))
-        return (sum(l.lnl(p,p['_model'].for_module(l)) for l in lnls),p)
+        for m in p['_models'].values(): p['_model'].update(m.get(p,p['_model.required']))
+        return (sum(l.lnl(p,p['_model'].for_module(l)) for l in p['_likelihoods'].values()),p)
 
 
 def pycosmc(p,**kwargs):
@@ -35,22 +30,21 @@ def pycosmc(p,**kwargs):
     params.process_parameters(p)
 
     #Import the various modules
-    for (l,k) in zip((lnls,models,derivers,samplers),('likelihoods','models','derivers','samplers')):
-        x = p.get(k,[])
-        if isinstance(x,str): x=x.split()
-        l += [__import__('pycosmc.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])() for m in x]  
-     
+    for k in ['likelihoods','models','derivers','samplers']:
+        modules = p['_%s'%k] = {}
+        for m in p.get(k,[]).split():
+            modules[m] = __import__('pycosmc.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])()  
 
     #Initialize modules
-    for i in lnls+models+derivers+samplers:
-        if hasattr(i,'init'): 
-            print 'Initializing %s...'%i.__class__.__name__
-            i.init(p)
+    for k in ['likelihoods','models','derivers','samplers']:
+        for m in p['_%s'%k].values(): 
+            print 'Initializing %s...'%m.__class__.__name__
+            m.init(p)
             
-    p['_model.required']=set(chain(*[l.get_required_models(p) for l in lnls]))
+    p['_model.required']=set(chain(*[l.get_required_models(p) for l in p['_likelihoods'].values()]))
     
     #Sampled and outputted parameters and covariance   
-    for l in lnls:
+    for l in p['_likelihoods'].values():
         for k, v in l.get_extra_params(p).items(): 
             p.setdefault(l.__class__.__name__).add_sampled_param(k,*v)
     sampled = p.get_all_sampled().keys()
@@ -65,7 +59,7 @@ def pycosmc(p,**kwargs):
         
     #Run samplers
     samples = namedtuple('sampletuple',['x','weight','lnl','params'])([],[],[],[])
-    for sampler in samplers:
+    for sampler in p['_samplers'].values():
         print "Starting %s sampler..."%sampler.__class__.__name__
         for (nsamp,s) in enumerate(sampler.sample([p[k] for k in sampled],lnl,p),1):
             yield s
