@@ -1,5 +1,5 @@
 from pycosmc.modules import Model
-from numpy import arange, ones, loadtxt, vstack, hstack, pi, exp
+from numpy import arange, loadtxt, hstack, pi, exp, zeros
 import os
 
 class baseline(Model):
@@ -40,12 +40,13 @@ class baseline(Model):
         self.tsz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"tsz.dat"))[:,1]]))
         self.ksz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"ksz_ov.dat"))[:,1]]))
         
+        
     def get(self, p, required):
         
         p_egfs = p.get('egfs',{})
         
-        def get_egfs(spectra, fluxcut, freqs, lmax):
-            if spectra != 'cl_TT': return 0
+        def get_egfs(spectra, fluxcut, freqs, lmax, **kwargs):
+            if spectra != 'cl_TT': return zeros(lmax)
             
             fr1, fr2 = freqs
             
@@ -72,6 +73,6 @@ def tszdep(fr1,fr2,fr0):
 
 def plaw_dep(fr1,fr2,fr0,alpha):
     """A power-law frequency dependence."""
-    return (fr1*fr2/fr0**2)**alpha / dBdT(fr1,fr0) / dBdT(fr2,fr0)
+    return (fr1*fr2/fr0**2.)**alpha / dBdT(fr1,fr0) / dBdT(fr2,fr0)
 
 

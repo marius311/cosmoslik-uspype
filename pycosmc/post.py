@@ -54,6 +54,10 @@ class Chain(dict):
         """Remove the first n non-unique samples from the beginning of the chain."""
         return self.sample(slice(sum(1 for _ in takewhile(lambda x: x<n, cumsum(self['weight']))),None))
     
+    def best_fit(self):
+        """Get the best fit sample."""
+        return {k:v[0] for k,v in self.sample(self['lnl'].argmin()).items()}
+        
     def thin(self,delta):
         """Take every delta non-unique samples."""
         c=ceil(cumsum([0]+self['weight'])/float(delta))
