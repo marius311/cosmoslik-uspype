@@ -25,11 +25,11 @@ if __name__=="__main__":
         elif args['doc']:
             modname = args['doc'][0]
             try:
-                mod = __import__('pycosmc.%s'%modname,fromlist=[modname.split('.')[1]])
+                mod = __import__('pycosmc.%s'%modname,fromlist=[modname.split('.')[-1]])
             except ImportError:
-                print "'%s' module not found. See 'pycosmc.py --help' to list all available modules."%modname
+                print "'%s' module not found.\nSee 'pycosmc.py --list' to list all available modules."%modname
             else:
                 print "Documentation for module '%s':"%modname
-                print mod.__getattribute__(modname.split('.')[1]).__doc__
+                print mod.__getattribute__(modname.split('.')[-1]).__doc__
         elif args['params.ini']:
             for _ in pycosmc.pycosmc(args['params.ini']): pass
