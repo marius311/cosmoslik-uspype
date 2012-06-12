@@ -2,6 +2,21 @@ from pycosmc.modules import Sampler
 from pycosmc.post import load_chain, Chains
 
 class inspector(Sampler):
+    """
+    
+    [inspector]
+        axes = ['ax1','ax2']
+        [ax1]
+            content = ('spt_k11','cl_TT')
+            ylim
+            xlim
+        [ax2]
+            content = ('spt_k11','cl_TT')
+            ylim
+            xlim
+
+    
+    """
     
     def init(self, p):
         c = load_chain(p.pop('output_file'))
