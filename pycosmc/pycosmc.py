@@ -38,7 +38,7 @@ def pycosmc(p,**kwargs):
     for (l,k) in zip((lnls,models,derivers,samplers),('likelihoods','models','derivers','samplers')):
         x = p.get(k,[])
         if isinstance(x,str): x=x.split()
-        l += [__import__('pycosmc.%s.%s'%(k,m),fromlist=m).__getattribute__(m)() if isinstance(m,str) else m for m in x]  
+        l += [__import__('pycosmc.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])() for m in x]  
      
 
     #Initialize modules
