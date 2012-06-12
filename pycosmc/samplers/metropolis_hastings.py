@@ -92,7 +92,7 @@ def _mpi_mcmc(x,lnl,p):
         while True:
             try:
                 yield s
-                samples.append(s)
+                samples.append(sampletuple(s.x,s.weight,s.lnl,None))
                 if len(samples)==50:
                     comm.send((rank,samples),dest=0)
                     s = sampler.send(comm.recv(source=0))
