@@ -8,7 +8,7 @@ class spt_k11(Likelihood):
     def lnl(self, p, model):
         #Get CMB + foreground model
         cl = model['cl_TT'][:self.lmax] + \
-             model['egfs']('cl_TT', lmax=self.lmax, freqs=self.freqs, fluxcut=self.fluxcut)
+             model['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq,self.freq), fluxcut=self.fluxcut)
         
         #Apply window functions
         cl = array([dot(cl[self.windowrange],w) for w in self.windows])
@@ -48,7 +48,7 @@ class spt_k11(Likelihood):
         self.lmax = self.windowrange.stop
         self.ells = array([dot(arange(10000)[self.windowrange],w) for w in self.windows])
 
-        self.freqs = (150,150)
+        self.freq = {'dust':154, 'radio': 151, 'tsz':153}
         self.fluxcut = 50
         
     
