@@ -2,6 +2,7 @@ import os, sys, re
 from numpy import *
 from matplotlib.pyplot import *
 from matplotlib.mlab import movavg
+from itertools import takewhile
 
 class Chain(dict):
     """
@@ -10,6 +11,7 @@ class Chain(dict):
     """
     def __init__(self,*args,**kwargs):
         super(Chain,self).__init__(*args,**kwargs)
+        for k,v in self.items(): self[k]=atleast_1d(v)
         if 'weight' not in self: self['weight']=ones(len(self.values()[0]))
         
     def copy(self):
@@ -44,8 +46,16 @@ class Chain(dict):
         """Returns the acceptance ratio."""
         return 1./mean(self["weight"])
     
+    def length(self,unique=True):
+        """Returns the number of unique samples. Set unique=False to get total samples."""
+        return (len if unique else sum)(self['weight'])
+    
+    def burnin(self,n):
+        """Remove the first n non-unique samples from the beginning of the chain."""
+        return self.sample(slice(sum(1 for _ in takewhile(lambda x: x<n, cumsum(self['weight']))),None))
+    
     def thin(self,delta):
-        """Take every delta samples."""
+        """Take every delta non-unique samples."""
         c=ceil(cumsum([0]+self['weight'])/float(delta))
         ids=where(c[1:]>c[:-1])[0]
         weight=diff(c[[0]+list(ids+1)])
@@ -88,9 +98,9 @@ class Chain(dict):
 class Chains(list):
     """A list of chains, probably from several MPI runs"""
     
-    def burnin(self,nsamp): 
-        """Remove the first nsamp samples from each chain."""
-        return Chains(c.sample(slice(nsamp,-1)) for c in self)
+    def burnin(self,n): 
+        """Remove the first n samples from each chain."""
+        return Chains(c.burnin(n) for c in self)
     
     def join(self): 
         """Combine the chains into one."""
@@ -126,7 +136,6 @@ def likegrid(chains,ps=None,fig=None,colors=['b','g','r'],nbins1d=30, nbins2d=20
     if type(chains)!=list: chains=[chains]
     if ps==None: ps = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
     colors=colors[:len(chains)]
-    #figsize(20,20)
     subplots_adjust(hspace=0,wspace=0)
 
     c=chains[0]
@@ -162,6 +171,8 @@ def likegrid(chains,ps=None,fig=None,colors=['b','g','r'],nbins1d=30, nbins2d=20
                     ax.set_xticklabels(['%.3g'%t for t in ticks[i]])
                 else: 
                     ax.set_xticklabels([])
+                    
+    fig.autofmt_xdate(rotation=90)
     return axs
 
 
