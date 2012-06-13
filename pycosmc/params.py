@@ -67,7 +67,6 @@ def read_ini(f):
     if isinstance(f,str): f=open(f)
     f = enumerate(f,1)
     
-    
     def _read_ini(f,subgroup=False):
         d=SectionDict()
         for i,line in f:
@@ -78,12 +77,21 @@ def read_ini(f):
                 else: raise ValueError("Unexpected '}' at line %i"%i)
             elif line!='':
                 r = re.match('\[(.*)\]{$',line)
-                if r!=None: d[r.group(1)]=_read_ini(f,True)
-                else:
-                    r = re.match('\s*(.*?)\s*=\s*(.*?)\s*$',line)
-                    if r==None: raise ValueError("Could not parse line %i: '%s'"%(i,line))
-                    elif r.group(1) in d: raise ValueError("Duplicate keys for '%s'"%r.group(1))
-                    else: d[r.group(1)]=r.group(2)
+                if r!=None: 
+                    d[r.group(1)]=_read_ini(f,True)
+                    continue
+
+                r = re.match('include (.*)',line)
+                if r!=None:
+                    d.update(read_ini(r.group(1)))
+                    continue
+
+                r = re.match('\s*(.*?)\s*=\s*(.*?)\s*$',line)
+                if r!=None:
+                    d[r.group(1)]=r.group(2)
+                    continue
+                    
+                raise ValueError("Could not parse line %i: '%s'"%(i,line))
                                 
         if subgroup: raise ValueError("Expected a '}'")
         else: return d
