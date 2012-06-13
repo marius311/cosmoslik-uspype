@@ -20,7 +20,9 @@ class baseline(Model):
         [radio]{
             amp = 0
             alpha = 3
+            gamma = 1.2
             norm_fr = 150
+            norm_fluxcut = 50
         }
         [tsz]{
             amp = 0
@@ -52,9 +54,11 @@ class baseline(Model):
             
             tilted_clust = (lambda tilt: hstack([self.clustered_template[:1500]*(1500/3000.)**tilt,(arange(1500,10001)/3000.)**tilt]))(p_egfs['dgcl','tilt'])
             
+            
+            
             return sum([p_egfs['dgpo','amp'] * (arange(lmax)/3000.)**2 * plaw_dep(fr1['dust'], fr2['dust'], p_egfs['dgpo','norm_fr'], p_egfs['dgpo','alpha']),
                         p_egfs['dgcl','amp'] * tilted_clust[:lmax] * plaw_dep(fr1['dust'], fr2['dust'], p_egfs['dgcl','norm_fr'], p_egfs['dgcl','alpha']),
-                        p_egfs['radio','amp'] * (arange(lmax)/3000.)**2 * plaw_dep(fr1['radio'], fr2['radio'], p_egfs['radio','norm_fr'], p_egfs['radio','alpha']),
+                        p_egfs['radio','amp'] * (fluxcut / p_egfs['radio','norm_fluxcut']) ** (2+p_egfs['radio','gamma']) * (arange(lmax)/3000.)**2 * plaw_dep(fr1['radio'], fr2['radio'], p_egfs['radio','norm_fr'], p_egfs['radio','alpha']),
                         p_egfs['tsz','amp'] * self.tsz_template[:lmax] * tszdep(fr1['tsz'],fr2['tsz'],p_egfs['tsz','norm_fr']),
                         p_egfs['ksz','amp'] * self.ksz_template[:lmax]])
 
