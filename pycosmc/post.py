@@ -1,7 +1,5 @@
 import os, sys, re
 from numpy import *
-from matplotlib.pyplot import *
-from matplotlib.mlab import movavg
 from itertools import takewhile
 
 class Chain(dict):
@@ -83,6 +81,7 @@ class Chain(dict):
             
     def plot(self,param):
         """Plot the value of a parameter as a function of sample number."""
+        from matplotlib.pyplot import plot
         plot(cumsum(self['weight']),self[param])
         
     def like1d(self,p,**kw): 
@@ -115,12 +114,16 @@ class Chains(list):
         for c in self: c.plot(param)
     
 def like2d(datx,daty,weights=None,nbins=15,which=[.68,.95],filled=False,color='k',**kw):
+    from matplotlib.pyplot import contour, contourf
+    from matplotlib.mlab import movavg
     if (weights==None): weights=ones(len(datx))
     H,xe,ye = histogram2d(datx,daty,nbins,weights=weights)
     xem, yem = movavg(xe,2), movavg(ye,2)
     (contourf if filled else contour)(xem,yem,transpose(H),levels=confint2d(H, which[::-1]+[0]),colors=color,**kw)
     
 def like1d(dat,weights=None,nbins=30,range=None,maxed=True,**kw):
+    from matplotlib.pyplot import plot
+    from matplotlib.mlab import movavg
     if (weights==None): weights=ones(len(dat))
     H, xe = histogram(dat,bins=nbins,weights=weights,normed=True,range=range)
     if maxed: H=H/max(H)
@@ -136,6 +139,8 @@ def get_covariance(data,weights=None):
 
 
 def likegrid(chains,ps=None,fig=None,colors=['b','g','r'],nbins1d=30, nbins2d=20):
+    from matplotlib.pyplot import subplots_adjust, figure, subplot, xlim, ylim, xlabel, ylabel
+
     if fig==None: fig=figure()
     if type(chains)!=list: chains=[chains]
     if ps==None: ps = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
