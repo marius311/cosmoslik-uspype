@@ -25,7 +25,7 @@ class goodman_weare(Sampler):
         #===
         
         sampler=EnsembleSampler(nwalkers,len(x), mylnl, pool=namedtuple('pool',['map'])(mpi.mpi_map))
-        p0=mpi.mpi_consistent(multivariate_normal(x,p['_cov'],size=nwalkers))
+        p0=mpi.mpi_consistent(multivariate_normal(x,p['_cov']/len(x)*p.get('proposal_scale',1)**2,size=nwalkers))
     
         for pos,lnprob,_ in sampler.sample(p0,iterations=nsamp/nwalkers):
 
