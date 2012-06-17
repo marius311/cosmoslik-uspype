@@ -59,7 +59,9 @@ class baseline(Model):
                         p_egfs['radio','amp'] * (fluxcut / p_egfs['radio','norm_fluxcut']) ** (2+p_egfs['radio','gamma']) * (arange(lmax)/3000.)**2 * plaw_dep(fr1['radio'], fr2['radio'], p_egfs['radio','norm_fr'], p_egfs['radio','alpha']),
                         p_egfs['tsz','amp'] * self.tsz_template[:lmax] * tszdep(fr1['tsz'],fr2['tsz'],p_egfs['tsz','norm_fr']),
                         p_egfs['ksz','amp'] * self.ksz_template[:lmax]])
-
+            
+        get_egfs.__reduce_ex__ = lambda _: (_unpicklable,(),None,None,None)
+        
         return {'egfs':get_egfs}
     
     
@@ -77,4 +79,5 @@ def plaw_dep(fr1,fr2,fr0,alpha):
     """A power-law frequency dependence."""
     return (fr1*fr2/fr0**2.)**alpha / dBdT(fr1,fr0) / dBdT(fr2,fr0)
 
+def _unpicklable(): pass 
 
