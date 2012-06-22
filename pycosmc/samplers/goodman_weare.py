@@ -31,6 +31,9 @@ class goodman_weare(Sampler):
 
             #===
             if mpi.get_size()>1:
+                for np in self.newp.values():
+                    for k in list(np.keys()): 
+                        if k[0]=='_': np.pop(k)
                 newps = MPI.COMM_WORLD.gather(self.newp)
                 if mpi.is_master(): 
                     for newp in newps: self.newp.update(newp) 
