@@ -37,10 +37,11 @@ class baseline(Model):
     def init(self, p): 
         
         self.dir = os.path.dirname(os.path.abspath(__file__))
+        padding = zeros(10000)
         def todl(cl,norm=3000): return (lambda dl: dl/dl[norm])((lambda l: cl*l*(l+1)/2/pi)(arange(cl.shape[0])))
-        self.clustered_template =  todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"clustered_150.dat"))[:,1]]),norm=1500)
-        self.tsz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"tsz.dat"))[:,1]]))
-        self.ksz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"ksz_ov.dat"))[:,1]]))
+        self.clustered_template =  todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"clustered_150.dat"))[:,1],padding]),norm=1500)
+        self.tsz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"tsz.dat"))[:,1],padding]))
+        self.ksz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"ksz_ov.dat"))[:,1],padding]))
         
         
     def get(self, p, required):
@@ -52,7 +53,7 @@ class baseline(Model):
             
             fr1, fr2 = freqs
             
-            tilted_clust = (lambda tilt: hstack([self.clustered_template[:1500]*(1500/3000.)**tilt,(arange(1500,10001)/3000.)**tilt]))(p_egfs['dgcl','tilt'])
+            tilted_clust = (lambda tilt: hstack([self.clustered_template[:1500]*(1500/3000.)**tilt,(arange(1500,20001)/3000.)**tilt]))(p_egfs['dgcl','tilt'])
             
             return sum([p_egfs['dgpo','amp'] * (arange(lmax)/3000.)**2 * plaw_dep(fr1['dust'], fr2['dust'], p_egfs['dgpo','norm_fr'], p_egfs['dgpo','alpha']),
                         p_egfs['dgcl','amp'] * tilted_clust[:lmax] * plaw_dep(fr1['dust'], fr2['dust'], p_egfs['dgcl','norm_fr'], p_egfs['dgcl','alpha']),
