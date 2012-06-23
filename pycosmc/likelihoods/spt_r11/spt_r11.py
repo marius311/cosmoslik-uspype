@@ -60,14 +60,11 @@ class spt_r11(Likelihood):
         self.windowrange = (lambda w: slice(w[0,0],w[-1,0]+1))(self.windows.values()[0][0])
         self.ells        = {frs: array([dot(arange(self.windowrange.start,self.windowrange.stop),w[:,1]) for w in windows]) for frs,windows in self.windows.items()} 
         self.lmax        = self.windowrange.stop
-        self.freq        = {'90' : {'dust':90,  'radio': 90,  'tsz':90},
-                            '150': {'dust':154, 'radio': 151, 'tsz':153},
-                            '220': {'dust':220, 'radio': 220, 'tsz':220}}
-        self.fluxcut     = 50
+        self.freq        = {'90' : {'dust':97.9,  'radio': 95.3,  'tsz':97.6},
+                            '150': {'dust':153.8, 'radio': 150.2, 'tsz':152.9},
+                            '220': {'dust':219.6, 'radio': 214.1, 'tsz':218.1}}
+        self.fluxcut     = 6.4
 
         
-    
-
-
 
 
