@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(prog='pycosmc.py')
 parser.add_argument('params.ini',nargs='?',help='a parameter file to run')
 parser.add_argument('--list',action='store_true',default=False,help='list available modules')
 parser.add_argument('--doc',nargs=1,metavar='<module>',help='get the documentation for a module')
-parser.add_argument('--build',nargs='?',metavar='<modules>',default=False,help='run build scripts for all modules, or specify a module to build')
+parser.add_argument('--build',nargs='?',metavar='<module>',default=False,help='run build scripts for all modules, or specify a module to build')
 
 if not sys.argv[1:]: parser.print_help()
 else:
