@@ -43,10 +43,17 @@ class baseline(Model):
         self.tsz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"tsz.dat"))[:,1],padding]))
         self.ksz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"ksz_ov.dat"))[:,1],padding]))
         
+        if p.get(('egfs','tied_dusty_alpha'),False):
+            if ('egfs','dgcl.alpha') in p and ('egfs','dgpo.alpha') in p:
+                raise Exception("When setting tied_dusty_alpha=True delete egfs.dgcl.alpha") 
+
+        
         
     def get(self, p, required):
         
         p_egfs = p.get('egfs',{})
+        
+        if p_egfs['tied_dusty_alpha']: p_egfs['dgcl','alpha'] = p_egfs['dgpo','alpha']
         
         def get_egfs(spectra, fluxcut, freqs, lmax, **kwargs):
             if spectra != 'cl_TT': return zeros(lmax)

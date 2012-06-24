@@ -14,7 +14,7 @@ class SectionDict(dict):
         for k,v in (other.iteritems() if isinstance(other,dict) else other): self[k]=v
     
     def __getitem__(self, key):
-        if type(key)==tuple and len(key)==1: key=key[0]
+        key = self._canonical_key(key)
         if type(key)==tuple:
             try: return super(SectionDict,self).__getitem__(key[0])[key[1:]]
             except KeyError: raise KeyError(key)
@@ -22,13 +22,20 @@ class SectionDict(dict):
             return super(SectionDict,self).__getitem__(key)
         
     def __setitem__(self, key, value):
-        if type(key)==tuple and len(key)==1: key=key[0]
+        key = self._canonical_key(key)
         if type(key)==tuple:
             if key[0] not in self: self[key[0]] = SectionDict()
             super(SectionDict,self).__getitem__(key[0])[key[1:]]=value
         else: 
             return super(SectionDict,self).__setitem__(key,value)
-                
+    
+    def _canonical_key(self,key):
+        #TODO: make this truly recursive
+        if type(key)==tuple and len(key)==1: key=key[0]
+        if isinstance(key,str): key=tuple(key.split('.'))
+        if type(key)==tuple and len(key)==1: key=key[0]
+        return key
+        
     def get(self, key, default=None):
         try: return self[key]
         except KeyError: return default

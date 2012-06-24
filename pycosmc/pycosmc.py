@@ -5,6 +5,9 @@ from itertools import product, chain
 import mpi, re, os, sys
 import params
 
+
+__all__ = ['lnl','pycosmc','build']
+
 def lnl(x,p):
     
     #Convert vector x to nice named dictionary
@@ -19,7 +22,7 @@ def lnl(x,p):
     else: 
         #Evaluate models and call likelihoods
         p['_model'] = ModelDict()
-        for m in p['_models'].values(): p['_model'].update(m.get(p,p['_model.required']))
+        for m in p['_models'].values(): p['_model'].update(m.get(p,p['_models_required']))
         return (sum(l.lnl(p,p['_model'].for_module(l)) for l in p['_likelihoods'].values()),p)
 
 
@@ -41,7 +44,7 @@ def pycosmc(p,**kwargs):
             print 'Initializing %s...'%m.__class__.__name__
             m.init(p)
             
-    p['_model.required']=set(chain(*[l.get_required_models(p) for l in p['_likelihoods'].values()]))
+    p['_models_required']=set(chain(*[l.get_required_models(p) for l in p['_likelihoods'].values()]))
     
     #Sampled and outputted parameters and covariance   
     for l in p['_likelihoods'].values():
