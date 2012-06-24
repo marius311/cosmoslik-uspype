@@ -2,4 +2,5 @@
 
 import runpy
 
-runpy.run_module("pycosmc")
+if __name__=="__main__":
+    runpy.run_module('pycosmc')

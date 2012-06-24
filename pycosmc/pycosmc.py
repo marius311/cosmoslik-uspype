@@ -2,7 +2,7 @@ from operator import __add__
 from numpy import mean, sqrt, diag, inf, std, loadtxt
 from collections import namedtuple
 from itertools import product, chain
-import mpi, re
+import mpi, re, os, sys
 import params
 
 def lnl(x,p):
@@ -121,3 +121,40 @@ def initialize_covariance(params):
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [sampled.keys(),prop_names]))
         for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
     return sigma
+
+def build(module=None):
+
+    rootdir = os.path.dirname(__file__)
+
+    def build_module(module):
+        dirname = os.path.abspath(os.path.join(rootdir,os.sep.join(module.split('.'))))
+        filenames = os.listdir(dirname)
+        if 'setup.py' in filenames:
+            print "Building '%s' from setup.py..."%module
+            if os.system('cd %s && python setup.py build'%dirname)!=0: 
+                print "Error running 'setup.py build' in '%s'"%os.path.abspath(dirname)
+                sys.exit()
+        elif 'Makefile' in filenames:
+            print "Building '%s' from Makefile..."%module
+            if os.system('cd %s && make'%dirname)!=0: 
+                print "Error running 'make' in '%s'"%os.path.abspath(dirname)
+                sys.exit()
+        return True
+
+    if module is None:
+        
+        def walk(folder):
+            if any([x in os.listdir(folder) for x in ['Makefile','setup.py']]):
+                build_module('.'.join(folder.split(os.sep)[len(rootdir.split(os.sep)):]))
+            else:
+                for f in os.listdir(folder):
+                    newf = os.path.join(folder,f)
+                    if os.path.isdir(newf):
+                        walk(newf)
+            
+        walk(rootdir)
+        print 'Succesfully built all modules.'
+        
+    else:
+        build_module(module)
+            
