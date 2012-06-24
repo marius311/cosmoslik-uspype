@@ -1,2 +1,2 @@
 from pycosmc import *
-import params
+import params, post
