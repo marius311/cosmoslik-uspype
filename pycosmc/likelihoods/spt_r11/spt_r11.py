@@ -7,7 +7,7 @@ class spt_r11(Likelihood):
 
     def lnl(self, p, model):
             
-        cl = self.get_cl_model(model)
+        cl = self.get_cl_model(p,model)
             
         if p.get('diagnostic',False):
             from matplotlib.pyplot import ion, figure, draw, cla
@@ -20,22 +20,28 @@ class spt_r11(Likelihood):
             draw()
             
         cl_vector = hstack([cl[spec_name] for spec_name in self.spec_names])
-
+        
         
         dcl = self.spec_vector - cl_vector
-        return dot(dcl,cho_solve(self.cov, dcl))/2
+        return dot(dcl,cho_solve(self.cov, dcl))/2 + self.lnl_calib(p)
 
 
+    def lnl_calib(self,p):
+        return sum(p.get(('spt_r11','a%s'%fr),1)-1**2/2/sig**2 \
+                    for fr,sig in [('90',0175),('150',.016),('220',.024)])
+        
     def plot(self,ax,key,cl=None,p=None):
-        if cl==None: cl = self.get_cl_model(p['_model'])
+        if cl==None: cl = self.get_cl_model(p,p['_model'])
         if key=='cl_TT':
             for spec_name, c in zip(self.spec_names,'bgrckm'):
                 ax.errorbar(self.ells[spec_name],self.spec[spec_name],yerr=self.sigmas[spec_name],c=c,fmt='.',label='SPT K11')
                 ax.plot(self.ells[spec_name],cl[spec_name],c=c)
 
 
-    def get_cl_model(self,model):
-        def get_cl(fr1,fr2): return hstack([model['cl_TT'],zeros(10000)])[:self.lmax] + model['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq[fr1],self.freq[fr2]), fluxcut=self.fluxcut)
+    def get_cl_model(self,p,model):
+        def get_cl(fr1,fr2): 
+            calib = p.get(('spt_r11','a%s'%fr1),1)*p.get(('spt_r11','a%s'%fr2),1) 
+            return calib * hstack([model['cl_TT'],zeros(10000)])[:self.lmax] + model['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq[fr1],self.freq[fr2]), fluxcut=self.fluxcut)
         def apply_windows(cl,windows): return array([dot(cl[self.windowrange],w[:,1]) for w in windows])
         return {spec_name:apply_windows(get_cl(*spec_name),windows) for (spec_name, windows) in self.windows.items()}
     
@@ -45,8 +51,6 @@ class spt_r11(Likelihood):
     def get_required_models(self, p):
         return ['cl_TT', 'egfs']
     
-
-
     def init(self, p):
         
         self.datadir     = os.path.join(os.path.dirname(__file__),'spt_multif_0809')
