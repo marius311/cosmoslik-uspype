@@ -13,13 +13,13 @@ def lnl(x,p):
     #Convert vector x to nice named dictionary
     p = p.copy(); p.update(zip(p.get_all_sampled().keys(),x))
     
-    #Calculate derived parameters
-    for d in p['_derivers'].values(): d.add_derived(p)
-    
     #Check priors
     if not all(v[1] < p[k] < v[2] for k, v in p.get_all_sampled().items()): 
         return inf, p
     else: 
+        #Calculate derived parameters
+        for d in p['_derivers'].values(): d.add_derived(p)
+
         #Evaluate models and call likelihoods
         p['_model'] = ModelDict()
         for m in p['_models'].values(): p['_model'].update(m.get(p,p['_models_required']))
@@ -124,6 +124,8 @@ def initialize_covariance(params):
         idxs = zip(*(list(product([ps.index(n) for n in common],repeat=2)) for ps in [sampled.keys(),prop_names]))
         for ((i,j),(k,l)) in idxs: sigma[i,j] = prop[k,l]
     return sigma
+
+
 
 def build(module=None):
 
