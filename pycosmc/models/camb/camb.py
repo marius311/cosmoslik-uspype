@@ -44,12 +44,16 @@ class camb(Model):
     
     def get(self,p,required):
         pcamb = p.get('camb',{})
+    
+        cambini = pcamb['ini'] = dict(self.cambdefs)
+        cambini.update(pcamb)
+        cambini.update(p)
         
         Alens = p.get('Alens',1)
-        cambini = pcamb['ini'] = dict(self.cambdefs)
         cambini['get_scalar_cls'] = doscal = any(x in required for x in ['cl_TT','cl_TE','cl_EE','cl_BB','cl_pp','cl_pT'])
         cambini['get_tensor_cls'] = dotens = (p.get('r',0) != 0)
-        cambini['get_transfer'] = dotrans = 'pk' in required
+        cambini['get_transfer'] = dotrans = any(x in required for x in ['lin_mpk','nonlin_mpk','trans'])
+        if 'nonlin_mpk' in required: cambini['do_nonlinear'] = min(1,cambini.get('do_nonlinear',1))
         cambini['do_lensing'] = dolens = (doscal and Alens != 0)
         docl = doscal or dolens or dotens 
         if docl:
@@ -57,9 +61,6 @@ class camb(Model):
             cambini['l_max_scalar'] = lmax + 50 + (100 if dolens else 0)
             lmax_tens = cambini['l_max_tensor'] = p.get('lmax_tensor',lmax + 50)
         
-        #Write CAMB ini
-        cambini.update(pcamb)
-        cambini.update(p)
         if pcamb.get('check_camb',False):
             print 'Setting the following CAMB parameters: %s'%{k:cambini[k] for k in cambini if isinstance(k,str) and re.sub('\([0-9]*\)','',k) in self.camb_keys}
         
@@ -74,12 +75,13 @@ class camb(Model):
         #Send params to CAMB and read output
         self.cambproc.stdin.write(cambini)
         output = read_camb_output(self.cambproc.stdout, self.cambproc.stderr)
-        
         if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],output['scal'].T))
         if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],output['lens'].T))
         if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],output['tens'].T))
-        if dotrans: result['mpk'] = output['mpk']
-        
+        if dotrans: 
+            for x in ['lin_mpk','nonlin_mpk','trans']:
+                if x in required: result[x]=output[x]
+                
         #Combine cl contributions
         if docl:
             for x in ['TT','TE','EE','BB']: 
@@ -97,7 +99,7 @@ class camb(Model):
         p['z_drag'] = output['z_drag']
         p['rs_drag'] = output['rs_drag']
         
-        return result        
+        return result
 
 
 def read_camb_output(stdout, stderr):
@@ -131,7 +133,6 @@ def read_camb_output(stdout, stderr):
                     
     for k, v in outdict.iteritems():
         try: outdict[k]=loadtxt(StringIO(v))
-        except: pass
-    
+        except: pass    
     return outdict
 
