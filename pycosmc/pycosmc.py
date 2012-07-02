@@ -4,9 +4,9 @@ from collections import namedtuple
 from itertools import product, chain
 import mpi, re, os, sys
 import params
+from samplers.inspector import inspect
 
-
-__all__ = ['lnl','pycosmc','build']
+__all__ = ['lnl','pycosmc','build','inspect']
 
 def lnl(x,p):
     
