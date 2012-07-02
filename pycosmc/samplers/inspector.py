@@ -1,21 +1,42 @@
 from pycosmc.modules import Sampler
 from pycosmc.post import load_chain, Chains
+import pycosmc 
 
 class inspector(Sampler):
     """
     
-    [inspector]
-        axes = ['ax1','ax2']
-        [ax1]
-            content = ('spt_k11','cl_TT')
-            ylim
-            xlim
-        [ax2]
-            content = ('spt_k11','cl_TT')
-            ylim
-            xlim
-
+    =============
+    The Inspector
+    =============
     
+    This isn't meant as a true sampler, instead its meant to 
+    inspect chains you've already run. You can use it to
+    
+    - make plots 
+    - troubleshoot chains
+    - debug modules
+    
+    Making Plots
+    ============
+    
+    Inspector freezes the chain at a given sample, and returns the 
+    internal state of pycosmc exactly as it was at that point when
+    the chain was being run. The internal state is just a
+    dictionary, which is returned by::
+    
+        import pycosmc
+        p = pycosmc.inspect('params.ini')
+    
+    After this command, ``p`` contains a dictionary which has all 
+    of the keys in the inifile. Sampled parameters have their values
+    updated to the given step in the chain. A few extra keys are also
+    present. You can access the likelihood modules by::
+    
+        p['_likelihoods']
+        
+    Most modules have a ``.plot()`` command. See individual module
+    documentation.
+     
     """
     
     def init(self, p):
@@ -27,3 +48,7 @@ class inspector(Sampler):
         x = [self.bestfit['.'.join(k)] for k in p.get_all_sampled()]
         lnl, p = lnl(x, p)
         yield x, 1, lnl, p
+
+
+def inspect(params):
+    return pycosmc.pycosmc(params,samplers='inspector').next()[-1]
