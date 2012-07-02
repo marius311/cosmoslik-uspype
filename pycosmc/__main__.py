@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import sys, os, pycosmc, pkgutil
+import sys, os, pycosmc
 import argparse
-from pycosmc import params
 
 parser = argparse.ArgumentParser(prog='pycosmc.py')
 parser.add_argument('params.ini',nargs='?',help='a parameter file to run')
 parser.add_argument('--list',action='store_true',default=False,help='list available modules')
-parser.add_argument('--doc',nargs=1,metavar='<module>',help='get the documentation for a module')
+parser.add_argument('--doc',nargs=1,metavar='<module>',help='print the documentation for a module')
+parser.add_argument('--html_doc',nargs=1,metavar='<module>',help='open the documentation for a module in a web-browser')
 parser.add_argument('--build',nargs='?',metavar='<modules>',default=False,help='run build script for a module (default: all modules)')
 parser.add_argument('-n',nargs=1,metavar='<# of chains>',default=False,help='run multiple chains with MPI')
 parser.add_argument('--qsub',action='store_true',default=False,help='submit via qsub')
@@ -19,6 +19,7 @@ else:
     args = vars(parser.parse_args())
     
     if args['list']:
+        import pkgutil
         pkgs = ['pycosmc.likelihoods', 'pycosmc.derivers', 'pycosmc.models', 'pycosmc.samplers']
         print "Found the following modules:"
         for p in pkgs:
@@ -26,21 +27,33 @@ else:
                 print '  %s.%s'%(p.split('.')[1],modname)
         print "See 'pycosmc.py --doc <module>' for more information on a given module."
         
-    elif args['doc']:
-        modname = args['doc'][0]
+    elif args['doc'] or args['html_doc']:
+        from textwrap import dedent
+        modname = (args['doc'] or args['html_doc'])[0]
         try:
             mod = __import__('pycosmc.%s'%modname,fromlist=[modname.split('.')[-1]])
         except ImportError:
             print "'%s' module not found.\nSee 'pycosmc.py --list' to list all available modules."%modname
         else:
-            print "Documentation for module '%s':"%modname
-            print mod.__getattribute__(modname.split('.')[-1]).__doc__
+            doc = mod.__getattribute__(modname.split('.')[-1]).__doc__
+            if args['doc']:
+                print "Documentation for module '%s':"%modname
+                print dedent(doc)
+            else:
+                from docutils.core import publish_string
+                from tempfile import mktemp
+                import webbrowser
+                tmpfile = mktemp(suffix='.html')
+                with open(tmpfile,'w') as f: f.write(publish_string(dedent(doc),writer_name='html'))
+                webbrowser.open(tmpfile)
+
             
     elif args['build'] is not False:
         pycosmc.build(args['build'])
         
     elif args['qsub']:
         from subprocess import Popen, PIPE
+        from pycosmc import params
 
         inifile = args['params.ini']
         
