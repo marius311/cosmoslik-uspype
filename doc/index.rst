@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CosmoSlik's documentation!
-=====================================
+CosmoSlik Documentation
+=======================
 
 *CosmoSlik is a modular Monte Carlo sampler of cosmological likelihoods.*
 
@@ -50,7 +50,7 @@ Now run::
 
     ./cosmoslik.py params.ini
     
-and you are running a chain for the WMAP likelihood!
+and you are running a chain for the WMAP likelihood! Now add some other :ref:`modules <modules>` or :ref:`create <create>` your own!
 
 
 
