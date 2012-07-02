@@ -11,8 +11,8 @@ Usage
 To use this module set ``samplers = metropolis_hastings`` 
 
 
-Notes
-=====
+Running with MPI
+================
 
 This sampler can be run with MPI. For example to run 8 parallel chains use::
 
