@@ -49,4 +49,4 @@ class inspector(Sampler):
 
 def inspect(params,*args,**kwargs):
     return pycosmc.pycosmc(params,*args,samplers='inspector',**kwargs).next()[-1]
->>>>>>> Stashed changes
+

@@ -12,7 +12,9 @@ Contents:
    :maxdepth: 2
 
    likelihoods
+   models
    samplers
+   
 
 CosmoSlik is a modular Monte Carlo sampler of cosmological likelihoods.
 
