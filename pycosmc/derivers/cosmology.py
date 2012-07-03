@@ -52,7 +52,7 @@ class cosmology(Deriver):
                 p["omvh2"]=p["omv"]*h**2
                 p["omm"]=p["omb"]+p["omc"]
                 p["ommh2"]=p["omm"]*h**2
-                if p['omnuh2']==0: p['mnu']=0 #TODO: fix this
+                p['mnu'] = p['omnuh2']/94.
                 p["H0"]=100*h
         elif 'H0' in p or 'h' in p:
             if 'H0' in p: h=p['h']=p['H0']/100.

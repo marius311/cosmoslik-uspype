@@ -10,7 +10,7 @@ class pico(Model):
     def init(self,p):
         try: datafile = p['pico','datafile']
         except KeyError: raise Exception("Please specify [pico]{datafile = ... }")
-        else: self.pico = pypico.load_pico(*datafile)
+        else: self.pico = pypico.load_pico(*([datafile] if isinstance(datafile,str) else datafile))
             
         self.camb = pycosmc.models.camb.camb()
         self.camb.init(p)
