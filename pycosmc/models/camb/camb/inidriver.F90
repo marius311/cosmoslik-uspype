@@ -323,7 +323,9 @@
 
             if (P%WantTransfer .and. .not. (P%NonLinear==NonLinear_lens .and. P%DoLensing)) then
              call Transfer_SaveToFiles(MT,TransferFileNames)
-             call Transfer_SaveMatterPower(MT,MatterPowerFileNames)
+             call Transfer_SaveMatterPower(MT,MatterPowerFileNames,"nonlin_")
+             CP%NonLinear=NonLinear_None
+             call Transfer_SaveMatterPower(MT,MatterPowerFileNames,"lin_")
              if ((P%OutputNormalization /= outCOBE) .or. .not. P%WantCls)  call Transfer_output_sig8(MT)
             end if
 

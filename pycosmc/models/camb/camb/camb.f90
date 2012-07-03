@@ -355,7 +355,7 @@
 
              OK = .true.
 
-             if (P%h0 < 20._dl.or.P%h0 > 100._dl) then
+             if (P%h0 < 20._dl.or.P%h0 > 200._dl) then
                OK = .false.
                write(*,*) '  Warning: H0 has units of km/s/Mpc. You have:', P%h0
             end if
