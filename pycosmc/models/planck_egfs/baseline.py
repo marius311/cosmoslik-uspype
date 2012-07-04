@@ -52,7 +52,7 @@ class baseline(Model):
         
         p_egfs = p.get('egfs',{})
         
-        if p_egfs['tied_dusty_alpha']: p_egfs['dgcl','alpha'] = p_egfs['dgpo','alpha']
+        if p_egfs.get('tied_dusty_alpha',False): p_egfs['dgcl','alpha'] = p_egfs['dgpo','alpha']
         
         def get_egfs(spectra, fluxcut, freqs, lmax, **kwargs):
             if spectra != 'cl_TT': return zeros(lmax)

@@ -2,7 +2,7 @@ import mspec as M
 from numpy import dot, arange, diag
 from scipy.linalg import cho_solve, cho_factor
 from pycosmc.modules import Likelihood
-
+from itertools import combinations_with_replacement
 
 class mspec_lnl(Likelihood):
     
@@ -50,14 +50,52 @@ class mspec_lnl(Likelihood):
         return self.process_signal(model_sig.binned(self.mp['binning']))
 
 
-    def plot(self,ax,key,cl=None,p=None):
+    def plot(self,
+             fig=None,
+             cl=None, 
+             p=None, 
+             show_comps=False,
+             yscale='log',
+             ylim=None,
+             residuals=False):
+        
         if cl==None: cl=self.get_cl_model(p, p['_model'])
-        if key=='cl_TT':
-            self.processed_signal.plot(ax=ax)
-            cl.plot(ax=ax)
-        elif key=='delta_cl_TT':
-            self.processed_signal.diffed(cl.spectra.values()[0]).plot(ax=ax)
-            ax.plot([cl.ells[0],cl.ells[-1]],[0]*2)
+        if fig==None: 
+            from matplotlib.pyplot import figure
+            fig=figure()
+            
+        n=len(self.processed_signal.get_maps())
+
+        fig.set_size_inches(6*n,6*n/1.6)
+        fig.subplots_adjust(hspace=0,wspace=0)
+            
+        for ((i,fri),(j,frj)) in combinations_with_replacement(enumerate(self.processed_signal.get_maps()),2):
+            ax=fig.add_subplot(n,n,n*j+i+1)
+            if residuals:
+                self.processed_signal.diffed(cl[(fri,frj)]).plot(ax=ax,which=[(fri,frj)],c='k')
+                ax.plot([cl.ells[0],cl.ells[-1]],[0]*2)
+            else:
+                self.processed_signal.plot(ax=ax,which=[(fri,frj)],c='k')
+                cl.plot(ax=ax,which=[(fri,frj)],c='k')
+                ax.plot(p['_model']['cl_TT'],c='b')
+                p['_model']['egfs']('cl_TT',
+                                    fluxcut=min(self.fluxcut[fri],self.fluxcut[frj]),
+                                    freqs=(self.eff_fr[fri],self.eff_fr[frj]),
+                                    lmax=self.lmax,
+                                    plot=True,
+                                    ax=ax)
+                ax.set_ylim(*(ylim or ((0,6999) if yscale=='linear' else (11,9999))))
+                ax.set_yscale(yscale)
+                ax.set_xlim(2,self.lmax-1)
+                
+                if n==1:
+                    ax.set_title('%sx%s'%(fri,fri))
+                else:
+                    if i==0: ax.set_ylabel(frj,size=16)
+                    else: ax.set_yticklabels([])
+                    if j==n-1: ax.set_xlabel(fri,size=16)
+                    else: ax.set_xticklabels([])
+
 
 
     
