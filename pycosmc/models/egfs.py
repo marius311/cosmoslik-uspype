@@ -5,6 +5,34 @@ import os
 class Egfs(Model):
     """
     
+    ====================================
+    Extra-galactic Foreground Base Class
+    ====================================
+    
+    This is a base class for extra-galactic foreground models.
+    This is *not* meant to be included in the parametr file via `models = ...`
+    
+    To create your own extra-galactic foreground model, create a subclass
+    of `Egfs` and override the function `get_egfs` to return a 
+    dictionary of extra-galactic foreground components. 
+    
+    Also passed to the `get_egfs` function is information from the dataset, such as 
+    
+    - `spectra` : e.g. `cl_TT' or 'cl_EE'
+    - `freq` : a dictionary for different effective frequencies, e.g. 
+      `{'dust': 153, 'radio': 151, 'tsz':150}
+    - `fluxcut` : the fluxcut in mJy
+    - `lmax` : the necessary maximum l
+    
+    Here's an example Egfs model ::
+    
+        from pycosmc.models.egfs import Egfs
+        
+        class MyEgfs(Egfs):
+        
+            def get(self, p, spectra, freq, fluxcut, lmax, **kwargs):
+                return {'single_component': p['amp'] * ones(lmax)}
+    
     """
     
     def get_egfs(self, p, *args, **kwargs):

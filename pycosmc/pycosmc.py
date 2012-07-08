@@ -30,13 +30,14 @@ def pycosmc(paramfile,**kwargs):
     p=params.read_ini(paramfile) if isinstance(paramfile,str) else paramfile
     p.update(kwargs)
     params.eval_values(p)
-    params.process_parameters(p)
+    params.process_parameters(p,paramfile)
 
     #Import the various modules
     for k in ['likelihoods','models','derivers','samplers']:
         modules = p['_%s'%k] = {}
         for m in p.get(k,[]).split():
             modules[m] = __import__('pycosmc.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])()  
+
 
     #Initialize modules
     for k in ['likelihoods','models','derivers','samplers']:
@@ -55,9 +56,7 @@ def pycosmc(paramfile,**kwargs):
     p['_cov'] = initialize_covariance(p)
     
     #Prep output file
-    if 'output_file' in p: 
-        if os.path.isdir(p['output_file']) and isinstance(paramfile,str): 
-            p['output_file'] = os.path.join(p['output_file'],os.path.basename(paramfile).replace('.ini','.chain'))
+    if 'output_file' in p:
         f = open(p['output_file'],'w')
         f.write("# lnl weight "+" ".join(['.'.join(k) for k in outputted])+"\n")
     else: f = None
