@@ -26,8 +26,8 @@ def lnl(x,p):
         return (sum(l.lnl(p,p['_model'].for_module(l)) for l in p['_likelihoods'].values()),p)
 
 
-def pycosmc(p,**kwargs):
-    p=params.read_ini(p) if isinstance(p,str) else p
+def pycosmc(paramfile,**kwargs):
+    p=params.read_ini(paramfile) if isinstance(paramfile,str) else paramfile
     p.update(kwargs)
     params.eval_values(p)
     params.process_parameters(p)
@@ -56,6 +56,8 @@ def pycosmc(p,**kwargs):
     
     #Prep output file
     if 'output_file' in p: 
+        if os.path.isdir(p['output_file']) and isinstance(paramfile,str): 
+            p['output_file'] = os.path.join(p['output_file'],os.path.basename(paramfile).replace('.ini','.chain'))
         f = open(p['output_file'],'w')
         f.write("# lnl weight "+" ".join(['.'.join(k) for k in outputted])+"\n")
     else: f = None
