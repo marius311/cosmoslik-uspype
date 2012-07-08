@@ -88,11 +88,12 @@ class spt_r11(Likelihood):
              show_data=True,
              show_model=True, 
              show_comps=False, 
-             data_kw = {'c':'b'},
+             data_kw = {'c':'k'},
              model_kw = {'c':'k'},
              comps_kw = {},
              yscale='linear',
              ylim=None):
+        
         from matplotlib.pyplot import figure
         if cl==None: cl = self.get_cl_model(p,p['_model'])
         if fig==None: fig=figure()
@@ -109,7 +110,9 @@ class spt_r11(Likelihood):
             else:
                 if show_data: ax.errorbar(self.ells[spec_name],self.spec[spec_name],yerr=self.sigmas[spec_name],fmt='.',label='x'.join(spec_name),**data_kw)
                 if show_model: ax.plot(self.ells[spec_name],cl[spec_name],**model_kw)
-                if show_comps: p['_model']['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq[fri],self.freq[frj]), fluxcut=self.fluxcut, plot=True, ax=ax, **comps_kw)
+                if show_comps: 
+                    ax.plot(p['_model']['cl_TT'],c='b')
+                    p['_model']['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq[fri],self.freq[frj]), fluxcut=self.fluxcut, plot=True, ax=ax, **comps_kw)
                 ax.set_ylim(*(ylim or ((0,449) if yscale=='linear' else (1,1000))))
                 ax.set_yscale(yscale)
             ax.set_xlim(1500,9500)
