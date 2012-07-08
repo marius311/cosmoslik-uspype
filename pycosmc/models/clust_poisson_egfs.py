@@ -1,19 +1,15 @@
-from pycosmc.modules import Model
+from pycosmc.models.egfs import Egfs
 from numpy import *
 
-class clust_poisson_egfs(Model):
+class clust_poisson_egfs(Egfs):
     
-    def get(self, p, required):
+    def get_colors(self, p):
+        return {'ps':'g','cl':'b'}
         
-        def clust_poisson_egfs(spectra, lmax, **kwargs):
-            if spectra != 'cl_TT': 
-                return zeros(lmax)
-            else:
-                return p['Aps'] * (arange(lmax)/3000.)**2 + p['Acl'] * (arange(lmax)/3000.)**0.8 
+    def get_egfs(self, p, spectra, lmax, **kwargs):
+        if spectra != 'cl_TT': return {}
+        else:
+            return {'ps': p['Aps'] * (arange(lmax)/3000.)**2,
+                    'cl': p['Acl'] * (arange(lmax)/3000.)**0.8}
 
-        clust_poisson_egfs.__reduce_ex__ = lambda _: (_unpicklable,(),None,None,None)
 
-        return {'egfs':clust_poisson_egfs}
-    
-    
-def _unpicklable(): pass 
