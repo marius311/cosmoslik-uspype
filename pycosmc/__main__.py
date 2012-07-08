@@ -57,18 +57,20 @@ else:
 
         inifile = args['params.ini']
         
-        if ('camb' in params.read_ini(inifile).get('models',[])): nnodes, ppn, wall = 6, 1, 24
-        else: nnodes, ppn, wall = 1, 8, 6
+        if ('camb' in params.read_ini(inifile).get('models',[])): nnodes, ppn, wall, nproc = 6, 1, 24, 7
+        else: nnodes, ppn, wall, nproc = 1, 1, 6, 9
         
-        name = inifile.replace('pycosmc.','').replace('params.','')
+        name = inifile.replace('pycosmc.','').replace('params.','').replace('.ini','')
         dir = os.path.dirname(os.path.abspath(inifile))
         sys.argv.remove('--qsub')
         
-        proc = Popen(["qsub"," -q","usplanck","-l",
-                      "nodes=%s:ppn=%s,pvmem=20gb,walltime=%s:00:00"%(nnodes,ppn,wall),
+        proc = Popen(["qsub","-q","usplanck","-l",
+                      "nodes=%s:ppn=%s,pvmem=20gb"%(nnodes,ppn),
+                      "-l","walltime=%s:00:00"%wall,
                       "-N",name,"-o","%s.log"%name,"-j","oe","-V"],stdin=PIPE,stdout=PIPE)
         
-        proc.stdin.write('cd %s && %s -m pycosmc %s'%(dir,sys.executable,' '.join(sys.argv[1:])))
+        proc.stdin.write('cd %s && %s -m pycosmc -n %i %s'%(dir,sys.executable,nproc,' '.join(sys.argv[1:])))
+        proc.stdin.close()
         print proc.stdout.readline()
 
     elif args['n']:

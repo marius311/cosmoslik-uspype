@@ -16,7 +16,8 @@ Contents:
 
     Installing <install>
     The Ini File <params>
-    How to Create Modules <create>
+    Create your own modules <create>
+    Create your own extra-galactic foregrounds modules <pycosmc.models.egfs>
     
 .. toctree::
     :maxdepth: 3

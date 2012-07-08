@@ -34,6 +34,7 @@ documentation.
 
 from pycosmc.modules import Sampler
 from pycosmc.post import load_chain, Chains
+import pycosmc 
 
 class inspector(Sampler):
     def init(self, p):

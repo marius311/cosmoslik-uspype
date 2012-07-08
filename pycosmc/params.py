@@ -1,6 +1,6 @@
 from ast import literal_eval
 from numpy import array, inf
-import re
+import re, os
 from collections import OrderedDict
 
 class SectionDict(dict):
@@ -119,22 +119,26 @@ def eval_values(p):
         
         
     
-def process_parameters(params):
+def process_parameters(p,paramfile=None):
     """ Process parameters. """
    
-    params['_sampled'] = {}
+    p['_sampled'] = {}
    
-    for k,v in params.iteritems():
+    for k,v in p.iteritems():
         if (type(v)==str):
             r = re.search("({0})\s\[\s?({0})\s({0})\s({0})\s?\]".format("[0-9.eE+-]+?"),v)
             if (r!=None):
-                params.add_sampled_param(k,*map(float,r.groups()))
+                p.add_sampled_param(k,*map(float,r.groups()))
             else:
                 try: 
                     v = literal_eval(v)
                     if isinstance(v, list): v=array(v)
-                    params[k] = v
+                    p[k] = v
                 except: pass
         elif isinstance(v,SectionDict):
             process_parameters(v)
             
+    #Automatic chain naming
+    if 'output_file' in p and os.path.isdir(p['output_file']) and isinstance(paramfile,str): 
+        p['output_file'] = os.path.join(p['output_file'],os.path.basename(paramfile).replace('.ini','.chain'))
+

@@ -1,23 +1,36 @@
 from numpy import array, loadtxt, dot, arange, diag, hstack, zeros
 from scipy.linalg import cho_factor, cho_solve
 from pycosmc.modules import Likelihood
+from itertools import combinations_with_replacement
 import os
 
 class spt_r11(Likelihood):
+    """
+    
+    Parameters
+    ==========
+    
+    [spt_r11].aX
+    --------------
+        X can be either 90, 150, 220. This is the calibration factor at that frequency. 
+        The theory spectrum gets multiplied by this factor. Calibration priors
+        which are included in the likelihood are 1.75, 1.6, and 2.4 percent respectively.
+          
+    """
 
     def lnl(self, p, model):
             
         cl = self.get_cl_model(p,model)
             
-        if p.get('diagnostic',False):
-            from matplotlib.pyplot import ion, figure, draw, cla
-            ion()
-            cla()
-            ax = figure(0).add_subplot(111)
-            self.plot(ax,'cl_TT',cl)
-            ax.set_yscale('log')
-            ax.set_ylim(10,6e3)
-            draw()
+#        if p.get('diagnostic',False):
+#            from matplotlib.pyplot import ion, figure, draw, cla
+#            ion()
+#            cla()
+#            ax = figure(0).add_subplot(111)
+#            self.plot(ax,'cl_TT',cl)
+#            ax.set_yscale('log')
+#            ax.set_ylim(10,6e3)
+#            draw()
             
         cl_vector = hstack([cl[spec_name] for spec_name in self.spec_names])
         
@@ -30,14 +43,6 @@ class spt_r11(Likelihood):
         return sum(p.get(('spt_r11','a%s'%fr),1)-1**2/2/sig**2 \
                     for fr,sig in [('90',0175),('150',.016),('220',.024)])
         
-    def plot(self,ax,key,cl=None,p=None):
-        if cl==None: cl = self.get_cl_model(p,p['_model'])
-        if key=='cl_TT':
-            for spec_name, c in zip(self.spec_names,'bgrckm'):
-                ax.errorbar(self.ells[spec_name],self.spec[spec_name],yerr=self.sigmas[spec_name],c=c,fmt='.',label='SPT K11')
-                ax.plot(self.ells[spec_name],cl[spec_name],c=c)
-
-
     def get_cl_model(self,p,model):
         def get_cl(fr1,fr2): 
             calib = p.get(('spt_r11','a%s'%fr1),1)*p.get(('spt_r11','a%s'%fr2),1) 
@@ -69,6 +74,50 @@ class spt_r11(Likelihood):
                             '220': {'dust':219.6, 'radio': 214.1, 'tsz':218.1}}
         self.fluxcut     = 6.4
 
-        
 
+
+    #============
+    #For plotting
+    #============
+
+    def plot(self, 
+             fig=None, 
+             cl=None, 
+             p=None, 
+             delta=False, 
+             show_data=True,
+             show_model=True, 
+             show_comps=False, 
+             data_kw = {'c':'k'},
+             model_kw = {'c':'k'},
+             comps_kw = {},
+             yscale='linear',
+             ylim=None):
+        
+        from matplotlib.pyplot import figure
+        if cl==None: cl = self.get_cl_model(p,p['_model'])
+        if fig==None: fig=figure()
+        fig.set_size_inches(15,15/1.6)
+        fig.subplots_adjust(hspace=0,wspace=0)
+        
+        for ((i,fri),(j,frj)) in list(combinations_with_replacement(enumerate(['90','150','220']),2)):
+            spec_name=(fri,frj)
+            ax=fig.add_subplot(3,3,j*3+i+1)
+            if delta:
+                if show_data: ax.errorbar(self.ells[spec_name],zeros(15),yerr=self.sigmas[spec_name],fmt='.',label='x'.join(spec_name),**data_kw)
+                if show_model: ax.plot(self.ells[spec_name],cl[spec_name]-self.spec[spec_name],**model_kw)
+                ax.set_ylim(-99,99)
+            else:
+                if show_data: ax.errorbar(self.ells[spec_name],self.spec[spec_name],yerr=self.sigmas[spec_name],fmt='.',label='x'.join(spec_name),**data_kw)
+                if show_model: ax.plot(self.ells[spec_name],cl[spec_name],**model_kw)
+                if show_comps: 
+                    ax.plot(p['_model']['cl_TT'],c='b')
+                    p['_model']['egfs']('cl_TT', lmax=self.lmax, freqs=(self.freq[fri],self.freq[frj]), fluxcut=self.fluxcut, plot=True, ax=ax, **comps_kw)
+                ax.set_ylim(*(ylim or ((0,449) if yscale=='linear' else (1,1000))))
+                ax.set_yscale(yscale)
+            ax.set_xlim(1500,9500)
+            if i==0: ax.set_ylabel(frj,size=16)
+            else: ax.set_yticklabels([])
+            if j==2: ax.set_xlabel(fri,size=16)
+            else: ax.set_xticklabels([])
 

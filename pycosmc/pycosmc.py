@@ -4,9 +4,9 @@ from collections import namedtuple
 from itertools import product, chain
 import mpi, re, os, sys
 import params
+from samplers.inspector import inspect
 
-
-__all__ = ['lnl','pycosmc','build']
+__all__ = ['lnl','pycosmc','build','inspect']
 
 def lnl(x,p):
     
@@ -26,17 +26,18 @@ def lnl(x,p):
         return (sum(l.lnl(p,p['_model'].for_module(l)) for l in p['_likelihoods'].values()),p)
 
 
-def pycosmc(p,**kwargs):
-    p=params.read_ini(p) if isinstance(p,str) else p
+def pycosmc(paramfile,**kwargs):
+    p=params.read_ini(paramfile) if isinstance(paramfile,str) else paramfile
     p.update(kwargs)
     params.eval_values(p)
-    params.process_parameters(p)
+    params.process_parameters(p,paramfile)
 
     #Import the various modules
     for k in ['likelihoods','models','derivers','samplers']:
         modules = p['_%s'%k] = {}
         for m in p.get(k,[]).split():
             modules[m] = __import__('pycosmc.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])()  
+
 
     #Initialize modules
     for k in ['likelihoods','models','derivers','samplers']:
@@ -55,7 +56,7 @@ def pycosmc(p,**kwargs):
     p['_cov'] = initialize_covariance(p)
     
     #Prep output file
-    if 'output_file' in p: 
+    if 'output_file' in p:
         f = open(p['output_file'],'w')
         f.write("# lnl weight "+" ".join(['.'.join(k) for k in outputted])+"\n")
     else: f = None
