@@ -21,7 +21,7 @@ class baseline(Egfs):
             if ('egfs','dgcl.alpha') in p and ('egfs','dgpo.alpha') in p:
                 raise Exception("When setting tied_dusty_alpha=True delete egfs.dgcl.alpha") 
 
-    def get_colors(self):
+    def get_colors(self, p):
         return {'dgpo':'g','dgcl':'g','radio':'orange','tsz':'magenta','ksz':'cyan'}
 
     def get_egfs(self, p, spectra, fluxcut, freqs, lmax, **kwargs):

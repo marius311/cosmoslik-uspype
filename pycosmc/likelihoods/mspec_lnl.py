@@ -77,13 +77,15 @@ class mspec_lnl(Likelihood):
             else:
                 self.processed_signal.plot(ax=ax,which=[(fri,frj)],c='k')
                 cl.plot(ax=ax,which=[(fri,frj)],c='k')
-                ax.plot(p['_model']['cl_TT'],c='b')
-                p['_model']['egfs']('cl_TT',
-                                    fluxcut=min(self.fluxcut[fri],self.fluxcut[frj]),
-                                    freqs=(self.eff_fr[fri],self.eff_fr[frj]),
-                                    lmax=self.lmax,
-                                    plot=True,
-                                    ax=ax)
+                if show_comps:
+                    ax.plot(p['_model']['cl_TT'],c='b')
+                    p['_model']['egfs']('cl_TT',
+                                        fluxcut=min(self.fluxcut[fri],self.fluxcut[frj]),
+                                        freqs=(self.eff_fr[fri],self.eff_fr[frj]),
+                                        lmax=self.lmax,
+                                        plot=True,
+                                        ax=ax)
+                    
                 ax.set_ylim(*(ylim or ((0,6999) if yscale=='linear' else (11,9999))))
                 ax.set_yscale(yscale)
                 ax.set_xlim(2,self.lmax-1)

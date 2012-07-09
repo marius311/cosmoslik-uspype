@@ -84,7 +84,7 @@ class spt_r11(Likelihood):
              fig=None, 
              cl=None, 
              p=None, 
-             delta=False, 
+             residuals=False, 
              show_data=True,
              show_model=True, 
              show_comps=False, 
@@ -103,7 +103,7 @@ class spt_r11(Likelihood):
         for ((i,fri),(j,frj)) in list(combinations_with_replacement(enumerate(['90','150','220']),2)):
             spec_name=(fri,frj)
             ax=fig.add_subplot(3,3,j*3+i+1)
-            if delta:
+            if residuals:
                 if show_data: ax.errorbar(self.ells[spec_name],zeros(15),yerr=self.sigmas[spec_name],fmt='.',label='x'.join(spec_name),**data_kw)
                 if show_model: ax.plot(self.ells[spec_name],cl[spec_name]-self.spec[spec_name],**model_kw)
                 ax.set_ylim(-99,99)

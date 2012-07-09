@@ -38,6 +38,8 @@ class Egfs(Model):
     def get_egfs(self, p, *args, **kwargs):
         raise NotImplementedError()
     
+    def get_colors(self, p):
+        return None
     
     def get(self, p, required):
         
@@ -50,7 +52,7 @@ class Egfs(Model):
                 ax = kwargs.pop('ax',None) or subplot(111)
                 colors = self.get_colors(p)
                 for comp in (lambda key: comps if key is True else key)(kwargs.pop('plot')):
-                    ax.plot(comps[comp],label=comp,color=colors[comp])
+                    ax.plot(comps[comp],label=comp,**({'color':colors[comp]} if colors else {}))
                     
             return sum(comps.values())
 
