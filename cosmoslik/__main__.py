@@ -35,7 +35,7 @@ else:
         except ImportError:
             print "'%s' module not found.\nSee 'cosmoslik.py --list' to list all available modules."%modname
         else:
-            doc = mod.__getattribute__(modname.split('.')[-1]).__doc__
+            doc = mod.__getattribute__(modname.split('.')[-1]).__doc__ or ""
             if args['doc']:
                 print "Documentation for module '%s':"%modname
                 print dedent(doc)
