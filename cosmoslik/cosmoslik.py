@@ -6,7 +6,7 @@ import mpi, re, os, sys
 import params
 from samplers.inspector import inspect
 
-__all__ = ['lnl','cosmoslik','build','inspect']
+__all__ = ['lnl','sample','build','inspect']
 
 def lnl(x,p):
     
