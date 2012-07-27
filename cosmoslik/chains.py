@@ -1,11 +1,26 @@
+"""
+
+Python module for dealing with MCMC chains.
+
+Contains utilities to:
+
+* Load chains in a variety of formats
+* Compute statistics (mean, std-dev, conf intervals, ...)
+* Plot 1- and 2-d distributions of one or multiple parameters.
+* Post-process chains 
+
+"""
+
+
 import os, sys, re
 from numpy import *
 from itertools import takewhile
 
+
 class Chain(dict):
     """
-    An MCMC chain. This is just a dictionary mapping parameter names
-    to lists of values, along with the special keys 'lnl' and 'weight'
+    An MCMC chain. This is just a Python dictionary mapping parameter names
+    to arrays of values, along with the special keys 'lnl' and 'weight'
     """
     def __init__(self,*args,**kwargs):
         super(Chain,self).__init__(*args,**kwargs)
@@ -84,17 +99,18 @@ class Chain(dict):
         from matplotlib.pyplot import plot
         plot(cumsum(self['weight']),self[param])
         
-    def like1d(self,p,**kw): 
+    def like1d(self,p,**kwargs): 
         """Plots 1D likelihood contours for a parameter."""
-        like1d(self[p],weights=self["weight"],**kw)
+        like1d(self[p],weights=self["weight"],**kwargs)
         
-    def like2d(self,p1,p2,**kw): 
+    def like2d(self,p1,p2,**kwargs): 
         """Plots 2D likelihood contours for a pair of parameters."""
-        like2d(self[p1], self[p2], weights=self["weight"], **kw)
+        like2d(self[p1], self[p2], weights=self["weight"], **kwargs)
         
     def likegrid(self,**kwargs):
         """Plot several 2d likelihood contours."""
-        likegrid(self, **kwargs)
+        if 'color' in kwargs: kwargs['colors']=[kwargs.pop('color')]
+        likegrid(self,**kwargs)
 
         
         
@@ -113,22 +129,49 @@ class Chains(list):
         """Plot the value of a parameter as a function of sample number for each chain."""
         for c in self: c.plot(param)
     
-def like2d(datx,daty,weights=None,nbins=15,which=[.68,.95],filled=False,color='k',**kw):
-    from matplotlib.pyplot import contour, contourf
+def like2d(datx,daty,weights=None,
+           nbins=15,which=[.68,.95],
+           filled=True, color=None, cmap=None,
+           ax=None, fig=None,
+           **kwargs):
+    
+    from matplotlib.pyplot import figure, get_cmap
     from matplotlib.mlab import movavg
-    if (weights==None): weights=ones(len(datx))
+    from matplotlib.colors import LinearSegmentedColormap
+    
+    if ax is None: ax = (figure(0) if fig is None else (figure(fig) if isinstance(fig,int) else fig)).add_subplot(111)
+    if weights is None: weights=ones(len(datx))
+    if 'c' in kwargs: color=kwargs.pop('c')
+    
     H,xe,ye = histogram2d(datx,daty,nbins,weights=weights)
     xem, yem = movavg(xe,2), movavg(ye,2)
-    (contourf if filled else contour)(xem,yem,transpose(H),levels=confint2d(H, which[::-1]+[0]),colors=color,**kw)
     
-def like1d(dat,weights=None,nbins=30,range=None,maxed=True,**kw):
-    from matplotlib.pyplot import plot
+    args = (xem,yem,transpose(H))
+    kwargs = dict(levels=confint2d(H, sorted(which)[::-1]+[0]),**kwargs)
+    if cmap is None: 
+        cmap = {'b':'Blues',
+                'g':'Greens',
+                'r':'Reds',
+                'orange':'Oranges',
+                'grey':'Greys'}.get(color)
+        if cmap is None: cmap = LinearSegmentedColormap.from_list(None,['w',color])
+        else: cmap = get_cmap(cmap)
+        
+    if filled: ax.contourf(*args,cmap=cmap,**kwargs)
+    ax.contour(*args,colors=color,**kwargs)
+    
+def like1d(dat,weights=None,
+           nbins=30,range=None,maxed=True,
+           ax=None, fig=None,
+           **kw):
+    from matplotlib.pyplot import figure
     from matplotlib.mlab import movavg
-    if (weights==None): weights=ones(len(dat))
+    if ax is None: ax = (figure(0) if fig is None else (figure(fig) if isinstance(fig,int) else fig)).add_subplot(111)
+    if weights is None: weights=ones(len(dat))
     H, xe = histogram(dat,bins=nbins,weights=weights,normed=True,range=range)
     if maxed: H=H/max(H)
     xem=movavg(xe,2)
-    plot(xem,H,**kw)
+    ax.plot(xem,H,**kw)
 
 def get_covariance(data,weights=None):
     if (weights==None): return cov(data.T)
@@ -138,51 +181,79 @@ def get_covariance(data,weights=None):
         return dot(zdata.T*weights,zdata)/(sum(weights)-1)
 
 
-def likegrid(chains,ps=None,fig=None,colors=['b','g','r'],nbins1d=30, nbins2d=20):
-    from matplotlib.pyplot import subplots_adjust, figure, subplot, xlim, ylim, xlabel, ylabel
-
-    if fig==None: fig=figure()
+def likegrid(chains, params=None, 
+             colors=['b','orange','k'], filled=True,
+             nbins1d=30, nbins2d=20, 
+             labels=None,
+             fig=None):
+    """
+    Make a grid (aka "triangle plot") of 1- and 2-d likelihood contours. 
+    
+    Parameters
+    ----------
+    
+    chains : 
+        one or a list of `Chain` objects
+    params, optional : 
+        list of parameter names which to include of None for 
+        all parameters (default: None)
+    fig, optional :
+        figure of figure number in which to plot (default: figure(0))
+    colors, optional : 
+        colors to cycle through for plotting
+    filled, optional :
+        whether to fill in the contours (default: True)
+    labels, optional :
+        list of names for a legend
+    nbins1d, optional : 
+        number of bins for 1d plots (default: 30)
+    nbins2d, optional :
+        number of bins for 2d plots (default: 20)
+    """
+    from matplotlib.pyplot import figure, Line2D
+    fig = figure(0) if fig is None else (figure(fig) if isinstance(fig,int) else fig)
     if type(chains)!=list: chains=[chains]
-    if ps==None: ps = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
+    if params==None: params = sorted(reduce(lambda x,y: set(x)&set(y), [c.params() for c in chains]))
     colors=colors[:len(chains)]
-    subplots_adjust(hspace=0,wspace=0)
+    fig.subplots_adjust(hspace=0,wspace=0)
 
     c=chains[0]
-    lims = [(max(min(c[p]),mean(c[p])-4*std(c[p])),min(max(c[p]),mean(c[p])+4*std(c[p]))) for p in ps]
-    ticks = [[t for t in ts if l[0]<=t<=l[1]] for (ts,l) in zip((c.mean(ps)+c.std(ps)*transpose([[-2,0,2]])).T ,lims)]
-    n=len(ps)
-    axs=n*[n*[None]]
-    for (i,p1) in enumerate(ps):
-        for (j,p2) in enumerate(ps):
+    lims = [(max(min(c[p]),mean(c[p])-4*std(c[p])),min(max(c[p]),mean(c[p])+4*std(c[p]))) for p in params]
+    ticks = [[t for t in ts if l[0]<=t<=l[1]] for (ts,l) in zip((c.mean(params)+c.std(params)*transpose([[-2,0,2]])).T ,lims)]
+    n=len(params)
+    for (i,p1) in enumerate(params):
+        for (j,p2) in enumerate(params):
             if (i<=j):
-                ax=axs[i][j]=subplot(n,n,j*n+i+1)
-                xlim(*lims[i])
+                ax=fig.add_subplot(n,n,j*n+i+1)
+                ax.set_xlim(*lims[i])
                 ax.set_xticks(ticks[i])
                 if (i==j): 
                     for (ch,col) in zip(chains,colors): 
-                        if p1 in ch: ch.like1d(p1,nbins=nbins1d,color=col)
+                        if p1 in ch: ch.like1d(p1,nbins=nbins1d,color=col,ax=ax)
                     ax.set_yticks([])
                     
                 elif (i<j): 
                     for (ch,col) in zip(chains,colors): 
-                        if p1 in ch and p2 in ch: ch.like2d(p1,p2,filled=False,nbins=nbins2d,color=col)
-                    ylim(*lims[j])
+                        if p1 in ch and p2 in ch: ch.like2d(p1,p2,filled=filled,nbins=nbins2d,color=col,ax=ax)
+                    ax.set_ylim(*lims[j])
                     ax.set_yticks(ticks[j])
                         
                 if i==0: 
-                    ylabel(p2)
+                    ax.set_ylabel(p2)
                     ax.set_yticklabels(['%.3g'%t for t in ticks[j]])
                 else: 
                     ax.set_yticklabels([])
                 
                 if j==n-1: 
-                    xlabel(p1)
+                    ax.set_xlabel(p1)
                     ax.set_xticklabels(['%.3g'%t for t in ticks[i]])
                 else: 
                     ax.set_xticklabels([])
                     
     fig.autofmt_xdate(rotation=90)
-    return axs
+    
+    if labels is not None:
+        fig.legend([Line2D([0],[0],c=c) for c in colors],labels)
 
 
 def confint2d(hist,which):

@@ -1,2 +1,2 @@
 from cosmoslik import *
-import params, post
+import params, chains
