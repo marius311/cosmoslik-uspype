@@ -185,7 +185,8 @@ def likegrid(chains, params=None,
              colors=['b','orange','k'], filled=True,
              nbins1d=30, nbins2d=20, 
              labels=None,
-             fig=None):
+             fig=None,
+             legend_loc=None):
     """
     Make a grid (aka "triangle plot") of 1- and 2-d likelihood contours. 
     
@@ -253,7 +254,7 @@ def likegrid(chains, params=None,
     fig.autofmt_xdate(rotation=90)
     
     if labels is not None:
-        fig.legend([Line2D([0],[0],c=c) for c in colors],labels)
+        fig.legend([Line2D([0],[0],c=c) for c in colors],labels,fancybox=True,shadow=True,loc=legend_loc)
 
 
 def confint2d(hist,which):
