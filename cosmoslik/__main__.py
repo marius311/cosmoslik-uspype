@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, cosmoslik
-import argparse
+import sys, os, cosmoslik, traceback, argparse
 
 parser = argparse.ArgumentParser(prog='cosmoslik.py')
 parser.add_argument('params.ini',nargs='?',help='a parameter file to run')
@@ -11,13 +10,9 @@ parser.add_argument('--html_doc',nargs=1,metavar='<module>',help='open the docum
 parser.add_argument('--build',nargs='?',metavar='<modules>',default=False,help='run build script for a module (default: all modules)')
 parser.add_argument('-n',nargs=1,metavar='<# of chains>',default=False,help='run multiple chains with MPI')
 parser.add_argument('--qsub',action='store_true',default=False,help='submit via qsub')
+parser.add_argument('--traceback',action='store_true',default=False,help='print out tracebacks on error messages')
 
-
-if not sys.argv[1:]: parser.print_help()
-else:
-    
-    args = vars(parser.parse_args())
-    
+def main(args):
     if args['list']:
         import pkgutil
         pkgs = ['cosmoslik.likelihoods', 'cosmoslik.derivers', 'cosmoslik.models', 'cosmoslik.samplers']
@@ -81,3 +76,21 @@ else:
     elif args['params.ini']:
         for _ in cosmoslik.sample(args['params.ini']): pass
 
+
+
+if not sys.argv[1:]: parser.print_help()
+else:
+    
+    args = vars(parser.parse_args())
+    try:
+        main(args)
+    except Exception as e:
+        sys.stderr.write('\033[91m')
+        traceback.print_exception(type(e), e, None, None, sys.stderr)
+        sys.stderr.write('\033[0m')
+        if args['traceback']: traceback.print_exception(None, None, sys.exc_info()[2], None, sys.stderr)
+        else: print "Run CosmoSlik with --traceback for more info."
+        sys.exit(1)
+
+    
+    

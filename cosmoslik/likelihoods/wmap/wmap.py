@@ -11,8 +11,8 @@ class wmap(Likelihood):
         ttmin, ttmax = p.get(('wmap','TT.lrange'),(2,1200))
         temin, temax = p.get(('wmap','TE.lrange'),(2,800))
         datadir = p.get(('wmap','data_dir'),None)
-        if not datadir: raise Exception('Please specify the WMAP data directory in the parameter file with [wmap]{data_dir=..}')
-        elif not os.path.exists(datadir): raise Exception("The WMAP data directory you specified in the parameter file does not exist. '%s'"%datadir)
+        if not datadir: raise Exception('Please specify the WMAP data directory in the parameter file with:\n[wmap]{\n  data_dir=/path/to/wmap/data\n}')
+        elif not os.path.exists(datadir): raise Exception("The WMAP data directory you specified does not exist: '%s'"%datadir)
         pywmap.wmapinit(ttmin,ttmax,temin,temax,os.path.normpath(datadir)+'/')
     
     def get_required_models(self, p):
