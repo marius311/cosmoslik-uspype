@@ -1,3 +1,0 @@
-default:
-	cd camb && make
-

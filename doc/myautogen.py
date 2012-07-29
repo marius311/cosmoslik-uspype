@@ -1,7 +1,7 @@
 import pkgutil
 from textwrap import dedent
 
-pkgs = ['pycosmc.likelihoods', 'pycosmc.derivers', 'pycosmc.models', 'pycosmc.samplers']
+pkgs = ['cosmoslik.likelihoods', 'cosmoslik.derivers', 'cosmoslik.models', 'cosmoslik.samplers']
 for p in pkgs:
     for _, modname, _ in pkgutil.iter_modules(__import__(p,fromlist=[p.split('.')[1]]).__path__):
         print '  %s.%s'%(p.split('.')[1],modname)

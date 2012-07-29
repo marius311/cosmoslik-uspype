@@ -92,10 +92,10 @@ samplers
 derivers
 --------
     Each of these keys should be given a list of names of modules to dynamically load.
-    For available modules, see documentation, or run ``pycosmc.py --list``. For example,
+    For available modules, see documentation, or run ``cosmoslik.py --list``. For example,
     if ::
     
-        $ ./pycosmc.py --list
+        $ ./cosmoslik.py --list
         Found the following modules:
             likelihoods.some_module
             

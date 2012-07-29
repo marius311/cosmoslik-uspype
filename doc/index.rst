@@ -1,4 +1,4 @@
-.. pycosmc documentation master file, created by
+.. cosmoslik documentation master file, created by
    sphinx-quickstart on Sun Jul  1 23:05:22 2012.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -17,7 +17,7 @@ Contents:
     Installing <install>
     The Ini File <params>
     Create your own modules <create>
-    Create your own extra-galactic foregrounds modules <pycosmc.models.egfs>
+    Create your own extra-galactic foregrounds modules <cosmoslik.models.egfs>
     
 .. toctree::
     :maxdepth: 3
