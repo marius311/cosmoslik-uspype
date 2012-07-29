@@ -31,7 +31,7 @@
         use Reionization
         use Recombination
         use Errors
-
+        
         implicit none    
         public
 
@@ -395,7 +395,6 @@
               write(*,'("Om_K                 = ",f9.6)') CP%omegak
               write(*,'("Om_m (1-Om_K-Om_L)   = ",f9.6)') 1-CP%omegak-CP%omegav
               write(*,'("100 theta (CosmoMC)  = ",f9.6)') 100*CosmomcTheta()
-
               if (CP%Num_Nu_Massive > 0) then
                 do nu_i=1, CP%Nu_mass_eigenstates 
                  write(*,'(f5.2, " nu, m_nu*c^2/k_B/T_nu0   = ",f8.2," (m_nu = ",f6.3," eV)")') &
@@ -545,7 +544,6 @@
            rs = rombint(dsound_da,1d-8,astar,atol)
            DA = AngularDiameterDistance(zstar)/astar
            CosmomcTheta = rs/DA
-    !       print *,'z* = ',zstar, 'r_s = ',rs, 'DA = ',DA, rs/DA
 
        end function CosmomcTheta
 
@@ -952,58 +950,63 @@
 
          if (CP%WantScalars .and. ScalFile /= '') then
            last_C=min(C_PhiTemp,C_last)
-           write (*,*) "[", trim(ScalFile), "]"
+           open(unit=fileio_unit,file=ScalFile,form='formatted',status='replace')
            do in=1,CP%InitPower%nn
              do il=lmin,min(10000,CP%Max_l)
-               write(*,trim(numcat('(1I6,',last_C))//'E15.5)')il ,fact*Cl_scalar(il,in,C_Temp:last_C)
+               write(fileio_unit,trim(numcat('(1I6,',last_C))//'E15.5)')il ,fact*Cl_scalar(il,in,C_Temp:last_C)
              end do
              do il=10100,CP%Max_l, 100
-               write(*,trim(numcat('(1E15.5,',last_C))//'E15.5)') real(il),&
+               write(fileio_unit,trim(numcat('(1E15.5,',last_C))//'E15.5)') real(il),&
                        fact*Cl_scalar(il,in,C_Temp:last_C)
              end do
             end do
+            close(fileio_unit)
          end if
   
        if (CP%WantTensors .and. TensFile /= '') then
-            write (*,*) "[", trim(TensFile), "]"
+           open(unit=fileio_unit,file=TensFile,form='formatted',status='replace')
             do in=1,CP%InitPower%nn
              do il=lmin,CP%Max_l_tensor
-               write(*,'(1I6,4E15.5)')il, fact*Cl_tensor(il, in, CT_Temp:CT_Cross)
+               write(fileio_unit,'(1I6,4E15.5)')il, fact*Cl_tensor(il, in, CT_Temp:CT_Cross)
              end do
             end do
+           close(fileio_unit)
         end if
  
         if (CP%WantTensors .and. CP%WantScalars .and. TotFile /= '') then
-           write (*,*) "[", trim(TotFile), "]"
+           open(unit=fileio_unit,file=TotFile,form='formatted',status='replace')
            do in=1,CP%InitPower%nn
              do il=lmin,CP%Max_l_tensor
-                write(*,'(1I6,4E15.5)')il, fact*(Cl_scalar(il, in, C_Temp:C_E)+ Cl_tensor(il,in, C_Temp:C_E)), &
+
+                write(fileio_unit,'(1I6,4E15.5)')il, fact*(Cl_scalar(il, in, C_Temp:C_E)+ Cl_tensor(il,in, C_Temp:C_E)), &
                    fact*Cl_tensor(il,in, CT_B), fact*(Cl_scalar(il, in, C_Cross) + Cl_tensor(il, in, CT_Cross))
              end do
              do il=CP%Max_l_tensor+1,CP%Max_l
-                  write(*,'(1I6,4E15.5)')il ,fact*Cl_scalar(il,in,C_Temp:C_E), 0._dl, fact*Cl_scalar(il,in,C_Cross)
+                  write(fileio_unit,'(1I6,4E15.5)')il ,fact*Cl_scalar(il,in,C_Temp:C_E), 0._dl, fact*Cl_scalar(il,in,C_Cross)
              end do
            end do
+           close(fileio_unit)
         end if
  
         if (CP%WantScalars .and. CP%DoLensing .and. LensFile /= '') then
-            write (*,*) "[", trim(LensFile), "]"
+           open(unit=fileio_unit,file=LensFile,form='formatted',status='replace')
             do in=1,CP%InitPower%nn
              do il=lmin, lmax_lensed
-               write(*,'(1I6,4E15.5)')il, fact*Cl_lensed(il, in, CT_Temp:CT_Cross)
+               write(fileio_unit,'(1I6,4E15.5)')il, fact*Cl_lensed(il, in, CT_Temp:CT_Cross)
              end do
             end do
+           close(fileio_unit)      
         end if
 
 
        if (CP%WantScalars .and. CP%WantTensors .and. CP%DoLensing .and. LensTotFile /= '') then
-           write (*,*) "[", trim(LensTotFile), "]"
+           open(unit=fileio_unit,file=LensTotFile,form='formatted',status='replace')
            do in=1,CP%InitPower%nn
              do il=lmin,min(CP%Max_l_tensor,lmax_lensed)
-                write(*,'(1I6,4E15.5)')il, fact*(Cl_lensed(il, in, CT_Temp:CT_Cross)+ Cl_tensor(il,in, CT_Temp:CT_Cross))
+                write(fileio_unit,'(1I6,4E15.5)')il, fact*(Cl_lensed(il, in, CT_Temp:CT_Cross)+ Cl_tensor(il,in, CT_Temp:CT_Cross))
              end do
              do il=min(CP%Max_l_tensor,lmax_lensed)+1,lmax_lensed
-                write(*,'(1I6,4E15.5)')il, fact*Cl_lensed(il, in, CT_Temp:CT_Cross)
+                write(fileio_unit,'(1I6,4E15.5)')il, fact*Cl_lensed(il, in, CT_Temp:CT_Cross)
              end do
            end do
      
@@ -1032,7 +1035,7 @@
 
         if (CP%WantScalars .and. CP%DoLensing .and. LensPotFile/='') then
   
-           write (*,*) "[", trim(LensPotFile), "]"
+           open(unit=fileio_unit,file=LensPotFile,form='formatted',status='replace')
            do in=1,CP%InitPower%nn
              do il=lmin,min(10000,CP%Max_l)
              
@@ -1049,17 +1052,18 @@
                end if
                scale = (real(il+1)/il)**2/OutputDenominator !Factor to go from old l^4 factor to new
                
-               write(*,'(1I6,7E15.5)') il , fact*TT, fact*EE, fact*BB, fact*TE, scale*Cl_scalar(il,in,C_Phi),&
+               write(fileio_unit,'(1I6,7E15.5)') il , fact*TT, fact*EE, fact*BB, fact*TE, scale*Cl_scalar(il,in,C_Phi),&
                    (real(il+1)/il)**1.5/OutputDenominator*sqrt(fact)*Cl_scalar(il,in,C_PhiTemp:C_PhiE)
                    
              end do
              do il=10100,CP%Max_l, 100
                scale = (real(il+1)/il)**2/OutputDenominator
-               write(*,'(1E15.5,7E15.5)') real(il), fact*Cl_scalar(il,in,C_Temp:C_E),0.,fact*Cl_scalar(il,in,C_Cross), &
+               write(fileio_unit,'(1E15.5,7E15.5)') real(il), fact*Cl_scalar(il,in,C_Temp:C_E),0.,fact*Cl_scalar(il,in,C_Cross), &
                     scale*Cl_scalar(il,in,C_Phi),&
                    (real(il+1)/il)**1.5/OutputDenominator*sqrt(fact)*Cl_scalar(il,in,C_PhiTemp:C_PhiE)
              end do
             end do
+            close(fileio_unit)
          end if
         end subroutine output_lens_pot_files
 
@@ -1080,13 +1084,14 @@
 
   
        if (CP%WantVectors .and. VecFile /= '') then
-            write (*,*) "[", trim(VecFile), "]"
+           open(unit=fileio_unit,file=VecFile,form='formatted',status='replace')
             do in=1,CP%InitPower%nn
              do il=lmin,CP%Max_l
-               write(*,'(1I5,4E15.5)')il, fact*Cl_vector(il, in, CT_Temp:CT_Cross)
+               write(fileio_unit,'(1I5,4E15.5)')il, fact*Cl_vector(il, in, CT_Temp:CT_Cross)
              end do
             end do
 
+           close(fileio_unit)
         end if
  
         end subroutine output_veccl_files
