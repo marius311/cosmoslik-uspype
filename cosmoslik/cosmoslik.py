@@ -135,31 +135,51 @@ def build(module=None):
     def build_module(module):
         dirname = os.path.abspath(os.path.join(rootdir,os.sep.join(module.split('.'))))
         filenames = os.listdir(dirname)
+        build_command = None
         if 'setup.py' in filenames:
-            print "Building '%s' from setup.py..."%module
-            if os.system('cd %s && python setup.py build'%dirname)!=0: 
-                print "Error running 'setup.py build' in '%s'"%os.path.abspath(dirname)
-                sys.exit()
+            build_command = 'cd %s && python setup.py build'%dirname
         elif 'Makefile' in filenames:
-            print "Building '%s' from Makefile..."%module
-            if os.system('cd %s && make'%dirname)!=0: 
-                print "Error running 'make' in '%s'"%os.path.abspath(dirname)
-                sys.exit()
-        return True
+            build_command = 'cd %s && make'%dirname
+        
+        if build_command is not None: 
+            print build_command
+            return os.system(build_command)==0
+
 
     if module is None:
         
-        def walk(folder):
+        def walk(folder, outcomes=None):
+            if outcomes is None: outcomes = {}
             if any([x in os.listdir(folder) for x in ['Makefile','setup.py']]):
-                build_module('.'.join(folder.split(os.sep)[len(rootdir.split(os.sep)):]))
+                module = '.'.join(folder.split(os.sep)[len(rootdir.split(os.sep)):])
+                outcomes[module] = build_module(module)
             else:
                 for f in os.listdir(folder):
                     newf = os.path.join(folder,f)
                     if os.path.isdir(newf):
-                        walk(newf)
+                        walk(newf,outcomes)
+                        
+            return outcomes
             
-        walk(rootdir)
-        print 'Succesfully built all modules.'
+        
+        outcomes = walk(rootdir)
+        
+        if any(outcomes.values()):
+            sys.stdout.write('\033[92m')
+            print "Successfully built,"
+            for m,o in outcomes.items(): 
+                if o: print "  %s"%m
+            sys.stdout.write('\033[0m')
+        if not all(outcomes.values()):
+            sys.stdout.write('\033[93m')
+            print "Failed to build:"
+            for m,o in outcomes.items(): 
+                if not o: print "  %s"%m
+            sys.stdout.write('\033[0m')
+            print ("To build a single module at a time and see error messages, use\n"
+                   "./cosmoslik.py --build <module>\n"
+                   "where <module> is the nameof a module as it appears above.")
+
         
     else:
         build_module(module)
