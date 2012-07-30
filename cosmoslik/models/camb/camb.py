@@ -1,9 +1,9 @@
 import os, sys, re
-from cosmoslik.params import read_ini
 from numpy import zeros, loadtxt, hstack
 from cosmoslik.modules import Model
-from cStringIO import StringIO
-from subprocess import Popen, PIPE
+
+try: import camb4py
+except ImportError: import local_camb4py as camb4py
 
 class camb(Model):
     
@@ -12,35 +12,10 @@ class camb(Model):
         self.cambdir = os.path.abspath(os.path.join(os.path.dirname(__file__),'camb'))
         pcamb.setdefault('executable',os.path.join(self.cambdir,'camb'))
         if not os.path.exists(pcamb['executable']): raise Exception("Could not find camb executable at '%s'"%pcamb['executable'])
-        self.cambdefs = read_ini(pcamb.get('defaults',os.path.join(self.cambdir,'defaults.ini')))
+        self.cambdefs = camb4py.read_ini(pcamb.get('defaults',os.path.join(self.cambdir,'defaults.ini')))
         self.cambdefs.update(pcamb)
-        self.cambdefs.update(
-                  {'output_root':'',
-                   'total_output_file':'',
-                   'lensed_total_output_file':'',
-                   'lens_potential_output_file':'',
-                   'scalar_output_file':'scal',
-                   'tensor_output_file':'tens',
-                   'lensed_output_file':'lens',
-                   'vector_output_file':'vec',
-                   'transfer_filename(1)': 'trans',
-                   'transfer_matterpower(1)':'mpk'
-                   })
-        self.cambproc = Popen(["./camb"],cwd=self.cambdir,stdin=PIPE,stdout=PIPE,stderr=PIPE)
+        self.camb = camb4py.load(pcamb['executable'], self.cambdefs)
     
-        #Read the CAMB source to find which parameters CAMB reads out of the ini file
-        if pcamb.get('check_camb',False):
-            self.camb_keys=set()
-            for f in os.listdir(pcamb.get('source',self.cambdir)):
-                if f.endswith('90'):
-                    with open(os.path.join(pcamb.get('source',self.cambdir),f)) as f:
-                        for line in f:
-                            r = re.search("Ini_Read.*File\(.*?,'(.*)'",line,re.IGNORECASE)
-                            if r: self.camb_keys.add(r.group(1))
-                            r = re.search("Ini_Read.*\('(.*)'",line,re.IGNORECASE)
-                            if r: self.camb_keys.add(r.group(1))
-            print 'Valid CAMB keys: %s'%self.camb_keys
-            
     
     def get(self,p,required):
         pcamb = p.get('camb',{})
@@ -61,23 +36,17 @@ class camb(Model):
             cambini['l_max_scalar'] = lmax + 50 + (100 if dolens else 0)
             lmax_tens = cambini['l_max_tensor'] = p.get('lmax_tensor',lmax + 50)
         
-        if pcamb.get('check_camb',False):
-            print 'Setting the following CAMB parameters: %s'%{k:cambini[k] for k in cambini if isinstance(k,str) and re.sub('\([0-9]*\)','',k) in self.camb_keys}
-        
         for k,v in cambini.items():
-            if isinstance(v,bool): pcamb['ini'][k] = 'T' if v else 'F'                   
-            elif isinstance(v,(float, int, str)): pcamb['ini'][k] = v
-            else: cambini.pop(k)
+            if not isinstance(v,(float, int, str, bool)): cambini.pop(k)
         
         result = {}
-        cambini = '\n'.join('%s = %s'%(k,v) for k,v in pcamb['ini'].items()) + '\n$\n'
 
-        #Send params to CAMB and read output
-        self.cambproc.stdin.write(cambini)
-        output = read_camb_output(self.cambproc.stdout, self.cambproc.stderr)
-        if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],output['scal'].T))
-        if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],output['lens'].T))
-        if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],output['tens'].T))
+        #Call CAMB
+        output = self.camb(**cambini)
+        
+        if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],output['scalar'].T))
+        if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],output['lensed'].T))
+        if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],output['tensor'].T))
         if dotrans: 
             for x in ['lin_mpk','nonlin_mpk','trans']:
                 if x in required: result[x]=output[x]
@@ -96,43 +65,8 @@ class camb(Model):
                 if 'cl_pT' in required: result['cl_pT'] = hstack([[0,0],scal['pT'][:lmax-2]])
 
         #TODO: figure out where to put this stuff
-        p['z_drag'] = output['z_drag']
-        p['rs_drag'] = output['rs_drag']
+        p['z_drag'] = float(output['misc']['z_drag'])
+        p['rs_drag'] = float(output['misc']['rs_drag'])
         
         return result
-
-
-def read_camb_output(stdout, stderr):
-    """
-    Read the output which our modified version of CAMB spits out to stdout.
-    In general we match key = value pairs, and sections for each spectra, e.g.,
-    
-    [scalar]
-    2 1000 100 10 0
-    ...
-    
-    Result returned in dictionary form.
-    """
-    
-    out, outdict = '', {}
-    cur = None
-    while True:
-        line = stdout.readline()
-        out += (line+'\n')
-        if line=='': raise Exception('CAMB error.\n%s%s'%(out,'\n'.join(stderr.readlines())))
-        if line.strip()=='$': break
-        r = re.match('\[(.*)\]',line.strip())
-        if r!=None: 
-            cur=r.group(1)
-        else:
-            matches = list(re.finditer('\s*(.+?)\s*=\s*(.+?)(\s|$)',line))
-            if len(matches)>0:
-                for m in matches: outdict[m.group(1)]=m.group(2)
-            else:
-                outdict[cur] = outdict.get(cur,'') + line + '\n'
-                    
-    for k, v in outdict.iteritems():
-        try: outdict[k]=loadtxt(StringIO(v))
-        except: pass    
-    return outdict
 
