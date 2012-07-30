@@ -172,13 +172,13 @@ def build(module=None):
             sys.stdout.write('\033[0m')
         if not all(outcomes.values()):
             sys.stdout.write('\033[93m')
-            print "Failed to build:"
+            print "Failed to build (ignore if not used):"
             for m,o in outcomes.items(): 
                 if not o: print "  %s"%m
             sys.stdout.write('\033[0m')
-            print ("To build a single module at a time and see error messages, use\n"
-                   "./cosmoslik.py --build <module>\n"
-                   "where <module> is the nameof a module as it appears above.")
+            print ("To build a single module at a time and see error messages,\n"
+                   "use './cosmoslik.py --build <module>' where <module> is the\n"
+                   "name of a module as it appears above.")
 
         
     else:

@@ -1,4 +1,4 @@
 include ../../../Makefile.inc
 
 recfast: recfast.for
-	gfortran -std=legacy -ffixed-line-length-none recfast.for -o recfast
+	$(F90C) $(F90FLAGS) -std=legacy -ffixed-line-length-none recfast.for -o recfast
