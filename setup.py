@@ -3,6 +3,8 @@
 from setuptools import setup, find_packages
 from setuptools.command.sdist import sdist as _sdist
 from distutils.command.build import build as _build
+from distutils import file_util
+import os
 
 try:
     from sphinx.setup_command import BuildDoc as _BuildDoc
@@ -13,11 +15,23 @@ except ImportError:
 
 class sdist(_sdist):
     """
-    Modified sdist which first builds the sphinx documentation so we can include it.
+    Modified sdist which
+    * first builds the sphinx documentation so we can include it
+    * follows the symlink on local_camb4py.
     """
     def run(self):
         if has_sphinx: self.run_command("build_sphinx") 
         _sdist.run(self)
+
+    def make_release_tree(self, base_dir, files):
+        _sdist.make_release_tree(self, base_dir, files)
+        src_file = 'cosmoslik/models/camb/local_camb4py.py'
+        target_file = os.path.join(base_dir,src_file)
+        if src_file in files:
+            try: os.unlink(target_file)
+            except: pass
+            self.copy_file(src_file, target_file,link=None)    
+                    
 
 
 if has_sphinx:
