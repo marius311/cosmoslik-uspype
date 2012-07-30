@@ -1980,30 +1980,31 @@
 
           do i=1, CP%Transfer%num_redshifts
             if (FileNames(i) /= '') then
-            write (*,*) "[", trim(FileNames(i)), "]"
+            open(unit=fileio_unit,file=FileNames(i),form='formatted',status='replace')
              do ik=1,MTrans%num_q_trans
                 if (MTrans%TransferData(Transfer_kh,ik,i)/=0) then
-                 write(*,'(7E14.6)') MTrans%TransferData(Transfer_kh:Transfer_max,ik,i)
+                 write(fileio_unit,'(7E14.6)') MTrans%TransferData(Transfer_kh:Transfer_max,ik,i)
                 end if
              end do
+            close(fileio_unit)
             end if
           end do
 
           
         end subroutine Transfer_SaveToFiles
 
-        subroutine Transfer_SaveMatterPower(MTrans, FileNames, Prefix)
+        subroutine Transfer_SaveMatterPower(MTrans, FileNames)
           use IniFile
           !Export files of total  matter power spectra in h^{-1} Mpc units, against k/h.
           Type(MatterTransferData), intent(in) :: MTrans
           character(LEN=Ini_max_string_len), intent(IN) :: FileNames(*)
-          character(LEN=*), intent(IN) :: Prefix
           integer itf,in,i
           integer points
           real, dimension(:,:), allocatable :: outpower
           character(LEN=80) fmt
           real minkh,dlnkh
           Type(MatterPowerData) :: PK_data
+
 
           write (fmt,*) CP%InitPower%nn+1
           fmt = '('//trim(adjustl(fmt))//'E15.5)'
@@ -2026,10 +2027,11 @@
                    call MatterPowerdata_Free(PK_Data)
                  end do
 
-                 write (*,*) "[", trim(Prefix), trim(FileNames(itf)), "]"
+                 open(unit=fileio_unit,file=FileNames(itf),form='formatted',status='replace')
                  do i=1,points
-                  write (*, fmt) MTrans%TransferData(Transfer_kh,i,1),outpower(i,1:CP%InitPower%nn)
+                  write (fileio_unit, fmt) MTrans%TransferData(Transfer_kh,i,1),outpower(i,1:CP%InitPower%nn)
                  end do
+                 close(fileio_unit)
 
              else
 
@@ -2050,9 +2052,9 @@
              end if
              end do
      
-             write (*,*) "[", trim(Prefix), trim(FileNames(itf)), "]"
+             open(unit=fileio_unit,file=FileNames(itf),form='formatted',status='replace')
              do i=1,points
-              write (*, fmt) minkh*exp((i-1)*dlnkh),outpower(i,1:CP%InitPower%nn)
+              write (fileio_unit, fmt) minkh*exp((i-1)*dlnkh),outpower(i,1:CP%InitPower%nn)
              end do
              close(fileio_unit)
              
