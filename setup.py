@@ -43,6 +43,10 @@ if has_sphinx:
         def finalize_options(self):
             self.build_dir = "doc/_build"
             _BuildDoc.finalize_options(self)
+            
+        def run(self):
+            _BuildDoc.run(self)
+            os.symlink("doc/_build/html/index.html", "README.html")
 
 
 class build(_build):
