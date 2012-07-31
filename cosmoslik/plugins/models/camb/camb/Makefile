@@ -1,7 +1,8 @@
 # This is the standard CAMB Makefile except that
 # the F90C and F90FLAGS variables are set from the
 # global CosmoSlik Makefile:
-include ../../../../Makefile.inc
+include ../../../../../Makefile.inc
+
 
 # If for some reason you would like to use a different 
 # set of flags just for this module you can set them by hand

@@ -128,7 +128,7 @@ def initialize_covariance(params):
 
 def build(module=None):
 
-    rootdir = os.path.dirname(__file__)
+    rootdir = os.path.join(os.path.dirname(__file__),'plugins')
 
     def build_module(module):
         dirname = os.path.abspath(os.path.join(rootdir,os.sep.join(module.split('.'))))

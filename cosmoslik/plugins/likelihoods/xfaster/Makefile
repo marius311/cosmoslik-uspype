@@ -1,4 +1,4 @@
-include ../../../Makefile.inc
+include ../../../../Makefile.inc
 
 default: xfaster_likelihood_mod.so
 
