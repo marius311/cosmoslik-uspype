@@ -1,2 +1,0 @@
-default:
-	./pycosmc.py --build
