@@ -1,5 +1,5 @@
 #Makefile --- WMAP Likelihood code...
-include ../../../../Makefile.inc
+include ../../../../../Makefile.inc
 
 #
 #			Non-test object files.
