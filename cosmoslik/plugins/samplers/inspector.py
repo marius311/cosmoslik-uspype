@@ -1,5 +1,5 @@
 from cosmoslik.plugins import Sampler
-from cosmoslik.post import load_chain, Chains
+from cosmoslik.chains import load_chain, Chains
 import cosmoslik 
 
 class inspector(Sampler):    
