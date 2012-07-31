@@ -15,11 +15,10 @@ parser.add_argument('--traceback',action='store_true',default=False,help='print 
 def main(args):
     if args['list']:
         import pkgutil
-        pkgs = ['cosmoslik.likelihoods', 'cosmoslik.derivers', 'cosmoslik.models', 'cosmoslik.samplers']
-        print "Found the following modules:"
-        for p in pkgs:
-            for _, modname, _ in pkgutil.iter_modules(__import__(p,fromlist=[p.split('.')[1]]).__path__):
-                print '  %s.%s'%(p.split('.')[1],modname)
+        plugins_pkg = 'cosmoslik.plugins'
+        print "Found the following modules in '%s':"%plugins_pkg
+        for _, modname, _ in pkgutil.iter_modules(__import__(plugins_pkg,fromlist=[plugins_pkg.split('.')[1]]).__path__):
+            print '  %s'%modname
         print "See 'cosmoslik.py --doc <module>' for more information on a given module."
         
     elif args['doc'] or args['html_doc']:

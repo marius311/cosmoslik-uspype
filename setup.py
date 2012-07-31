@@ -74,6 +74,7 @@ setup(
     author='Marius Millea',
     author_email='mmillea@ucdavis.edu',
     packages=find_packages(),
+    namespace_packages = ['cosmoslik.plugins'],
     url='http://pypi.python.org/pypi/cosmoslik/',
     license='LICENSE.txt',
     description='A modular cosmology likelihood sampler.',
