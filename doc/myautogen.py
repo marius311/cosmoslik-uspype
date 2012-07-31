@@ -1,17 +1,12 @@
-import pkgutil
+import cosmoslik.plugins, os
 from textwrap import dedent
 
-pkgs = ['cosmoslik.likelihoods', 'cosmoslik.derivers', 'cosmoslik.models', 'cosmoslik.samplers']
-for p in pkgs:
-    for _, modname, _ in pkgutil.iter_modules(__import__(p,fromlist=[p.split('.')[1]]).__path__):
-        print '  %s.%s'%(p.split('.')[1],modname)
-        try:
-            mod = __import__('%s.%s'%(p,modname),fromlist=[modname.split('.')[-1]])
-        except ImportError:
-            print "'%s' module not found."%modname
-        else:
-            doc = mod.__doc__
-            if doc!=None: 
-                with open('%s.%s'%(p,modname)+'.rst','w') as f: f.write(dedent(doc))
+if not os.path.exists("plugins"): os.mkdir("plugins")
+
+print "Found documentation for:"
+for (name,cls,_) in cosmoslik.plugins.get_all_plugins():
+    if cls.__doc__!=None: 
+        print '  %s'%name
+        with open('plugins/%s.rst'%'.'.join(name.split('.')[2:]),'w') as f: f.write(dedent(cls.__doc__))
 
 

@@ -14,33 +14,28 @@ parser.add_argument('--traceback',action='store_true',default=False,help='print 
 
 def main(args):
     if args['list']:
-        import pkgutil
-        pkgs = ['cosmoslik.likelihoods', 'cosmoslik.derivers', 'cosmoslik.models', 'cosmoslik.samplers']
-        print "Found the following modules:"
-        for p in pkgs:
-            for _, modname, _ in pkgutil.iter_modules(__import__(p,fromlist=[p.split('.')[1]]).__path__):
-                print '  %s.%s'%(p.split('.')[1],modname)
+        import plugins
+        print "Found the following modules in 'cosmoslik.plugins':"
+        for (name,_,typ) in plugins.get_all_plugins():
+            print '  %s'%'.'.join(name.split('.')[2:])
         print "See 'cosmoslik.py --doc <module>' for more information on a given module."
         
     elif args['doc'] or args['html_doc']:
         from textwrap import dedent
-        modname = (args['doc'] or args['html_doc'])[0]
-        try:
-            mod = __import__('cosmoslik.%s'%modname,fromlist=[modname.split('.')[-1]])
-        except ImportError:
-            print "'%s' module not found.\nSee 'cosmoslik.py --list' to list all available modules."%modname
+        import plugins
+        plugin_name = (args['doc'] or args['html_doc'])[0]
+        plugin = plugins.get_plugin(plugin_name) 
+        doc = plugin.__doc__ or ""
+        if args['doc']:
+            print "Documentation for module '%s':"%plugin_name
+            print dedent(doc)
         else:
-            doc = mod.__getattribute__(modname.split('.')[-1]).__doc__ or ""
-            if args['doc']:
-                print "Documentation for module '%s':"%modname
-                print dedent(doc)
-            else:
-                from docutils.core import publish_string
-                from tempfile import mktemp
-                import webbrowser
-                tmpfile = mktemp(suffix='.html')
-                with open(tmpfile,'w') as f: f.write(publish_string(dedent(doc),writer_name='html'))
-                webbrowser.open(tmpfile)
+            from docutils.core import publish_string
+            from tempfile import mktemp
+            import webbrowser
+            tmpfile = mktemp(suffix='.html')
+            with open(tmpfile,'w') as f: f.write(publish_string(dedent(doc),writer_name='html'))
+            webbrowser.open(tmpfile)
 
             
     elif args['build'] is not False:

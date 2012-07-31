@@ -16,13 +16,13 @@ Contents:
 
     Installing <install>
     The Ini File <params>
-    Create your own modules <create>
-    Create your own extra-galactic foregrounds modules <cosmoslik.models.egfs>
+    Create your own plugins <create>
+    Create your own extra-galactic foregrounds models <plugins/models.egfs>
     
 .. toctree::
     :maxdepth: 3
    
-    modules
+    plugins
    
    
 
@@ -51,7 +51,7 @@ Now run::
 
     ./cosmoslik.py params.ini
     
-and you are running a chain for the WMAP likelihood! Now add some other :ref:`modules <modules>` or :ref:`create <create>` your own!
+and you are running a chain for the WMAP likelihood! Now add some other :ref:`plugins <plugins>` or :ref:`create <create>` your own!
 
 
 

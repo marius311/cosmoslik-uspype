@@ -3,8 +3,8 @@ from numpy import mean, sqrt, diag, inf, std, loadtxt
 from collections import namedtuple
 from itertools import product, chain
 import mpi, re, os, sys
-import params
-from samplers.inspector import inspect
+import params, plugins
+from plugins.samplers.inspector import inspect
 
 __all__ = ['lnl','sample','build','inspect']
 
@@ -34,9 +34,7 @@ def sample(paramfile,**kwargs):
 
     #Import the various modules
     for k in ['likelihoods','models','derivers','samplers']:
-        modules = p['_%s'%k] = {}
-        for m in p.get(k,[]).split():
-            modules[m] = __import__('cosmoslik.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])()  
+        p['_%s'%k] = {m:plugins.get_plugin('%s.%s'%(k,m))() for m in p[k].split()}
 
 
     #Initialize modules
@@ -130,7 +128,7 @@ def initialize_covariance(params):
 
 def build(module=None):
 
-    rootdir = os.path.dirname(__file__)
+    rootdir = os.path.join(os.path.dirname(__file__),'plugins')
 
     def build_module(module):
         dirname = os.path.abspath(os.path.join(rootdir,os.sep.join(module.split('.'))))
@@ -166,14 +164,14 @@ def build(module=None):
         
         if any(outcomes.values()):
             sys.stdout.write('\033[92m')
-            print "Successfully built,"
-            for m,o in outcomes.items(): 
+            print "Successfully built:"
+            for m,o in sorted(outcomes.items()): 
                 if o: print "  %s"%m
             sys.stdout.write('\033[0m')
         if not all(outcomes.values()):
             sys.stdout.write('\033[93m')
             print "Failed to build (ignore if not used):"
-            for m,o in outcomes.items(): 
+            for m,o in sorted(outcomes.items()): 
                 if not o: print "  %s"%m
             sys.stdout.write('\033[0m')
             print ("To build a single module at a time and see error messages,\n"
