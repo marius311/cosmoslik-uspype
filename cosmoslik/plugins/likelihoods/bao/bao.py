@@ -1,11 +1,16 @@
 from scipy.integrate import quad 
 from numpy import *
 from numpy.linalg import inv
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 
 
 class bao(Likelihood):
     """
+    
+    ===
+    BAO
+    ===
+    
     Beutler et al. (2011) give rs/Dv = 0.336 \pm 0.015  at z=0.106
     Padmanabhan et al. (2012) give Dv/rs = 8.88 \pm 0.17 at z=0.35
     BOSS (Anderson et al. 2012) report Dv/rs = 13.67 \pm 0.22 at z = 0.57

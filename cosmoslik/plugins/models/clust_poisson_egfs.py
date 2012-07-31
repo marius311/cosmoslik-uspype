@@ -1,7 +1,7 @@
-from cosmoslik.models.egfs import Egfs
+from egfs import egfs
 from numpy import *
 
-class clust_poisson_egfs(Egfs):
+class clust_poisson_egfs(egfs):
     
     def get_colors(self, p):
         return {'ps':'g','cl':'b'}

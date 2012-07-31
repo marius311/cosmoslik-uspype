@@ -1,8 +1,8 @@
-from cosmoslik.modules import Model
+from cosmoslik.plugins import Model
 from numpy import arange, loadtxt, hstack, pi, exp, zeros, ndarray
 import os
 
-class Egfs(Model):
+class egfs(Model):
     """
     
     ====================================
@@ -13,7 +13,7 @@ class Egfs(Model):
     This is *not* meant to be included in the parametr file via `models = ...`
     
     To create your own extra-galactic foreground model, create a subclass
-    of `Egfs` and override the function `get_egfs` to return a 
+    of `egfs` and override the function `get_egfs` to return a 
     dictionary of extra-galactic foreground components. 
     
     Also passed to the `get_egfs` function is information from the dataset, such as 
@@ -24,11 +24,11 @@ class Egfs(Model):
     - `fluxcut` : the fluxcut in mJy
     - `lmax` : the necessary maximum l
     
-    Here's an example Egfs model ::
+    Here's an example egfs model ::
     
-        from cosmoslik.models.egfs import Egfs
+        from cosmoslik.models.egfs import egfs
         
-        class MyEgfs(Egfs):
+        class MyEgfs(egfs):
         
             def get(self, p, spectra, freq, fluxcut, lmax, **kwargs):
                 return {'single_component': p['amp'] * ones(lmax)}

@@ -1,4 +1,4 @@
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 
 class tau_prior(Likelihood):
     

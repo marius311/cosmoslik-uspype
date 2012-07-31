@@ -1,4 +1,4 @@
-from cosmoslik.modules import Model
+from cosmoslik.plugins import Model
 from numpy import arange, ones, zeros
 
 class m10(Model):

@@ -1,6 +1,6 @@
 from hubble_theta import *
 from numpy import exp, log
-from cosmoslik.modules import Deriver
+from cosmoslik.plugins import Deriver
 
 aliases = [
      ['As','A_s','scalar_amp(1)'],

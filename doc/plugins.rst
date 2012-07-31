@@ -1,7 +1,7 @@
-.. _modules:
+.. _plugins:
 
 =======
-Modules
+Plugins
 =======
 
 .. toctree::

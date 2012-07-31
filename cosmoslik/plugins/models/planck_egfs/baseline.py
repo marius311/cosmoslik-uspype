@@ -1,9 +1,9 @@
-from cosmoslik.modules import Model
-from cosmoslik.models.egfs import Egfs
+from cosmoslik.plugins import Model
+from .. egfs import egfs
 from numpy import arange, loadtxt, hstack, pi, exp, zeros, ndarray
 import os
 
-class baseline(Egfs):
+class baseline(egfs):
     """
     
     """

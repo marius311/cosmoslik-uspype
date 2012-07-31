@@ -3,7 +3,7 @@ from collections import namedtuple
 import cosmoslik.mpi as mpi
 from emcee.ensemble import EnsembleSampler
 from numpy.random import multivariate_normal
-from cosmoslik.modules import Sampler
+from cosmoslik.plugins import Sampler
 from mpi4py import MPI
 
 

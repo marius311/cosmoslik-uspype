@@ -1,7 +1,7 @@
 import mspec as M
 from numpy import dot, arange, diag
 from scipy.linalg import cho_solve, cho_factor
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 from itertools import combinations_with_replacement
 
 class mspec_lnl(Likelihood):

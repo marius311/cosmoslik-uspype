@@ -1,39 +1,70 @@
 from numpy import array, loadtxt, dot, arange, diag, hstack, zeros
 from scipy.linalg import cho_factor, cho_solve
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 from itertools import combinations_with_replacement
 import os
 
 class spt_r11(Likelihood):
     """
     
+    ========================
+    SPT Reichardt et al 2011
+    ========================
+    
+    - Paper: `<http://adsabs.harvard.edu/abs/2011arXiv1111.0932R>`_
+    - Data: `<http://pole.uchicago.edu/public/data/reichardt11/index.html>`_
+    - CosmoSlik module by Marius Millea
+    
+    Usage
+    =====
+    
+    To use this module add ``spt_r11`` to the list of ``likelihoods``
+    
+    
+    Models
+    ======
+    
+    This module required ``Models`` for 
+    
+    - cl_TT
+    - Extra-galactic foregrounds
+    
+    
     Parameters
     ==========
     
-    [spt_r11].aX
+    [spt_r11].a90
+    -------------
+    [spt_r11].a150
     --------------
-        X can be either 90, 150, 220. This is the calibration factor at that frequency. 
-        The theory spectrum gets multiplied by this factor. Calibration priors
-        which are included in the likelihood are 1.75, 1.6, and 2.4 percent respectively.
-          
+    [spt_r11].a220
+    --------------
+    
+        These are the calibration factors at each frequency, defined so that 
+        they multiply the theory spectrum. Calibration priors
+        are included in the likelihood and are 1.75%, 1.6%, and 2.4% respectively.
+        
+        
+    Plotting
+    ========
+    
+    You can use the Inspector module to plot best-fit models and residuals. 
+    ::
+    
+        import cosmoslik
+        p = cosmoslik.inspect('param.ini')
+        p['_likelihoods']['spt_r11'].plot(p=p,delta=delta)
+    
+    where ``delta`` is ``True`` if you want to plot residuals, otherwise ``False``.
     """
+
+
 
     def lnl(self, p, model):
             
         cl = self.get_cl_model(p,model)
             
-#        if p.get('diagnostic',False):
-#            from matplotlib.pyplot import ion, figure, draw, cla
-#            ion()
-#            cla()
-#            ax = figure(0).add_subplot(111)
-#            self.plot(ax,'cl_TT',cl)
-#            ax.set_yscale('log')
-#            ax.set_ylim(10,6e3)
-#            draw()
-            
         cl_vector = hstack([cl[spec_name] for spec_name in self.spec_names])
-        
         
         dcl = self.spec_vector - cl_vector
         return dot(dcl,cho_solve(self.cov, dcl))/2 + self.lnl_calib(p)
@@ -43,6 +74,7 @@ class spt_r11(Likelihood):
         return sum(p.get(('spt_r11','a%s'%fr),1)-1**2/2/sig**2 \
                     for fr,sig in [('90',0175),('150',.016),('220',.024)])
         
+        
     def get_cl_model(self,p,model):
         def get_cl(fr1,fr2): 
             calib = p.get(('spt_r11','a%s'%fr1),1)*p.get(('spt_r11','a%s'%fr2),1) 
@@ -50,11 +82,14 @@ class spt_r11(Likelihood):
         def apply_windows(cl,windows): return array([dot(cl[self.windowrange],w[:,1]) for w in windows])
         return {spec_name:apply_windows(get_cl(*spec_name),windows) for (spec_name, windows) in self.windows.items()}
     
+    
     def to_matrix(self,spec):
         return hstack([spec[spec_name] for spec_name in self.spec_names])
         
+        
     def get_required_models(self, p):
         return ['cl_TT', 'egfs']
+    
     
     def init(self, p):
         
@@ -75,10 +110,6 @@ class spt_r11(Likelihood):
         self.fluxcut     = 6.4
 
 
-
-    #============
-    #For plotting
-    #============
 
     def plot(self, 
              fig=None, 

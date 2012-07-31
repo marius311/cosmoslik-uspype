@@ -1,4 +1,4 @@
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 from xfaster_likelihood_mod import xfaster_likelihood_mod as X
 from numpy import arange, pi
 

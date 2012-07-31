@@ -1,79 +1,78 @@
-"""
-
-===================
-Metropolis-Hastings
-===================
-
-
-Usage
-=====
-
-To use this module set ``samplers = metropolis_hastings`` 
-
-
-Running with MPI
-================
-
-This sampler can be run with MPI. For example to run 8 parallel chains use::
-
-    python -m cosmoslik -n 8 params.ini
-
-or::
-
-    mpiexec -n 9 python -m cosmoslik params.ini
-
-(When running ``mpiexec`` by hand, one process is a "master," so run one extra process.)
-
-
-
-Parameters
-==========
-
-include sampler ones...
-
-proposal_matrix
----------------
-    Path to a file which holds the proposal covariance. The format
-    is a standard ascii matrix, with the first line being 
-    a comment with space-separated variable names. (See e.g. savecov). This should
-    be a best estimate of the posterior covariance. The actual proposal covariance is 
-    multiplied by ``proposal_scale**2 / N`` where ``N`` is the number of parameters.
-    (default: diagonal covariance taken from the ``width`` of each parameter)
-    
-proposal_scale
---------------
-    Scale the proposal matrix. (default: ``2.4``)
-    
-proposal_update
----------------
-    Whether to update the proposal based on the sample covariance of previous steps. 
-    Ignored if not running with MPI. The proposal is updated by taking 
-    the sample covariance of the last half of each chain. (default: ``True``) 
-    
-proposal_update_start
----------------------
-    If ``proposal_update`` is ``True``, how many non-unique samples per chain to
-    wait before starting to do updates. (default: ``1000``) 
-    
-
-    
-
-
-"""
-
 from numpy import log, mean, array, sqrt, diag, genfromtxt, sum, dot, cov, inf
 from random import random
 from numpy.random import multivariate_normal
 import cosmoslik.mpi as mpi, re, time
 from itertools import product
 from collections import namedtuple
-from cosmoslik.modules import Sampler
+from cosmoslik.plugins import Sampler
     
 sampletuple = namedtuple('sampletuple',['x','weight','lnl','extra'])
     
 
 class metropolis_hastings(Sampler):
+    """
     
+    ===================
+    Metropolis-Hastings
+    ===================
+    
+    
+    Usage
+    =====
+    
+    To use this module set ``samplers = metropolis_hastings`` 
+    
+    
+    Running with MPI
+    ================
+    
+    This sampler can be run with MPI. For example to run 8 parallel chains use::
+    
+        python -m cosmoslik -n 8 params.ini
+    
+    or::
+    
+        mpiexec -n 9 python -m cosmoslik params.ini
+    
+    (When running ``mpiexec`` by hand, one process is a "master," so run one extra process.)
+    
+    
+    
+    Parameters
+    ==========
+    
+    include sampler ones...
+    
+    proposal_matrix
+    ---------------
+        Path to a file which holds the proposal covariance. The format
+        is a standard ascii matrix, with the first line being 
+        a comment with space-separated variable names. (See e.g. savecov). This should
+        be a best estimate of the posterior covariance. The actual proposal covariance is 
+        multiplied by ``proposal_scale**2 / N`` where ``N`` is the number of parameters.
+        (default: diagonal covariance taken from the ``width`` of each parameter)
+        
+    proposal_scale
+    --------------
+        Scale the proposal matrix. (default: ``2.4``)
+        
+    proposal_update
+    ---------------
+        Whether to update the proposal based on the sample covariance of previous steps. 
+        Ignored if not running with MPI. The proposal is updated by taking 
+        the sample covariance of the last half of each chain. (default: ``True``) 
+        
+    proposal_update_start
+    ---------------------
+        If ``proposal_update`` is ``True``, how many non-unique samples per chain to
+        wait before starting to do updates. (default: ``1000``) 
+        
+    
+        
+    
+    
+    """
+
     def init(self,p):
         if mpi.get_rank()>0: 
             if 'output_file' in p: p['output_file']+=('_%i'%mpi.get_rank())

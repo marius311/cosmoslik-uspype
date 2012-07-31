@@ -1,4 +1,4 @@
-from cosmoslik.modules import Sampler
+from cosmoslik.plugins import Sampler
 from scipy.optimize import *
 from numpy import *
 from numpy.linalg.linalg import inv

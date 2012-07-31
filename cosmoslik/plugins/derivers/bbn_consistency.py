@@ -1,7 +1,7 @@
 from cStringIO import StringIO
 from scipy.interpolate import bisplev, bisplrep
 from numpy import loadtxt
-from cosmoslik.modules import Deriver
+from cosmoslik.plugins import Deriver
 
 class bbn_consistency(Deriver):
 

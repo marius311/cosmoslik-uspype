@@ -1,6 +1,6 @@
 from numpy import array, fromstring, loadtxt, dot, arange, diag
 from scipy.linalg import cho_factor, cho_solve
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 from itertools import takewhile
 import os
 

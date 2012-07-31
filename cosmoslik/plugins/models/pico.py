@@ -1,6 +1,6 @@
 import pypico
-import cosmoslik.models.camb
-from cosmoslik.modules import Model
+import cosmoslik.plugins.models.camb as camb
+from cosmoslik.plugins import Model
 
 class pico(Model):
     
@@ -12,7 +12,7 @@ class pico(Model):
         except KeyError: raise Exception("Please specify [pico]{datafile = ... }")
         else: self.pico = pypico.load_pico(*([datafile] if isinstance(datafile,str) else datafile))
             
-        self.camb = cosmoslik.models.camb.camb()
+        self.camb = camb.camb()
         self.camb.init(p)
         
     def get(self,p,required):

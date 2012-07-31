@@ -3,8 +3,8 @@ from numpy import mean, sqrt, diag, inf, std, loadtxt
 from collections import namedtuple
 from itertools import product, chain
 import mpi, re, os, sys
-import params
-from samplers.inspector import inspect
+import params, plugins
+from plugins.samplers.inspector import inspect
 
 __all__ = ['lnl','sample','build','inspect']
 
@@ -34,9 +34,7 @@ def sample(paramfile,**kwargs):
 
     #Import the various modules
     for k in ['likelihoods','models','derivers','samplers']:
-        modules = p['_%s'%k] = {}
-        for m in p.get(k,[]).split():
-            modules[m] = __import__('cosmoslik.%s.%s'%(k,m),fromlist=m.split('.')[-1]).__getattribute__(m.split('.')[-1])()  
+        p['_%s'%k] = {m:plugins.get_plugin('%s.%s'%(k,m))() for m in p[k].split()}
 
 
     #Initialize modules

@@ -1,4 +1,4 @@
-from cosmoslik.modules import Likelihood
+from cosmoslik.plugins import Likelihood
 from numpy import *
 from itertools import islice, chain
 from scipy.linalg import cho_factor, cho_solve

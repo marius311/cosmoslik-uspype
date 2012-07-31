@@ -1,4 +1,4 @@
-from cosmoslik.modules import Model
+from cosmoslik.plugins import Model
 import os
 from tempfile import mkdtemp
 from numpy import interp, log, exp, genfromtxt, vectorize
