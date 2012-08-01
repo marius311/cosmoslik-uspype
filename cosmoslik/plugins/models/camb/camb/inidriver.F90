@@ -300,7 +300,14 @@
          write (*,'("Age of universe/GYr  = ",f7.3)') Age  
        end if 
 
-       if (global_error_flag==0) call CAMB_GetResults(P)
+       if (global_error_flag==0) then
+         if (P%WantScalars .or. P%WantVectors .or. P%WantTensors .or. P%WantTransfer) then
+           call CAMB_GetResults(P)
+         else
+           call CAMBParams_Set(P)
+           call initvars
+         end if
+       end if
        if (global_error_flag/=0) then
         write (*,*) 'Error result '//trim(global_error_message)
         stop

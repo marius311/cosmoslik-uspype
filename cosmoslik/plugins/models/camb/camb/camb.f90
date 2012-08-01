@@ -352,13 +352,7 @@
          function CAMB_ValidateParams(P) result(OK)
             type(CAMBparams), intent(in) :: P
             logical OK
-
-             OK = .true.
-             if (.not. P%WantTransfer .and. .not. P%WantCls) then
-                OK = .false.
-                write(*,*) 'There is nothing to do! Do transfer functions or Cls.'
-             end if
-
+             ok = .true.
              if (P%h0 < 20._dl.or.P%h0 > 200._dl) then
                OK = .false.
                write(*,*) '  Warning: H0 has units of km/s/Mpc. You have:', P%h0
