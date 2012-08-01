@@ -1,6 +1,6 @@
 import mspec as M
 from numpy import dot, arange, diag
-from scipy.linalg import cho_solve, cho_factor
+from scipy.linalg import cho_solve, cho_factor, cholesky
 from cosmoslik.plugins import Likelihood
 from itertools import combinations_with_replacement
 
@@ -15,29 +15,38 @@ class mspec_lnl(Likelihood):
         
         self.mp = M.read_Mspec_ini(p['mspec'])
         
-        self.signal = M.load_signal(self.mp).dl()
+        self.signal = M.load_signal(self.mp)#.dl()
         
         self.processed_signal = self.process_signal(self.signal)
-        (self.signal_matrix_spec, self.signal_matrix_cov) = self.processed_signal.get_as_matrix(ell_blocks=True)
+
+        self.lrange = self.mp['lrange']
+        if isinstance(self.lrange,tuple): 
+            self.lrange = {k:self.lrange for k in self.processed_signal.get_spectra()}
         
-        self.signal_matrix_cov = cho_factor(self.signal_matrix_cov)
+        (self.signal_matrix_spec, self.signal_matrix_cov) = self.processed_signal.get_as_matrix(lrange=self.lrange)
+        
+        self.signal_matrix_cov = cholesky(self.signal_matrix_cov), False
         self.signal_matrix_spec = self.signal_matrix_spec[:,1]
         
         self.fluxcut = self.mp['fluxcut']
         self.eff_fr = self.mp['eff_fr']
-        self.lmax = self.mp["lrange"][1]
+        self.lmax = max([u for (_,u) in self.lrange.values()])
+        
+
         
     def process_signal(self,s):
         """All the thing we do to the signal after loading it in."""
         if 'cleaning' in self.mp: s=s.lincombo(self.mp['cleaning'])
-        return s.rescaled(self.mp.get('rescale',1)) \
-                .sliced(self.mp['binning'](slice(*self.mp["lrange"])))
-
-    def get_cl_model(self,p,model):
+        s = s.rescaled(self.mp.get('rescale',1))
+        return s
+    
+    
+    def get_cl_model(self,p,model=None):
         """ 
         Build an Mspec PowerSpectra object which holds CMB + foreground C_ell's
         for all the required frequencies 
         """
+        if model is None: model = p['_model']
         model_sig = M.PowerSpectra(ells=arange(self.lmax))
         for fr1,fr2 in self.signal.get_spectra():
             cl = model['cl_TT'][:self.lmax].copy()
@@ -75,7 +84,7 @@ class mspec_lnl(Likelihood):
                 self.processed_signal.diffed(cl[(fri,frj)]).plot(ax=ax,which=[(fri,frj)],c='k')
                 ax.plot([cl.ells[0],cl.ells[-1]],[0]*2)
             else:
-                self.processed_signal.plot(ax=ax,which=[(fri,frj)],c='k')
+                self.processed_signal.sliced(self.processed_signal.binning(slice(*self.lrange[(fri,frj)]))).plot(ax=ax,which=[(fri,frj)],c='k')
                 cl.plot(ax=ax,which=[(fri,frj)],c='k')
                 if show_comps:
                     ax.plot(p['_model']['cl_TT'],c='b')
@@ -105,16 +114,7 @@ class mspec_lnl(Likelihood):
         
         cl_model = self.get_cl_model(p, model)
         
-        cl_model_matrix = cl_model.get_as_matrix(ell_blocks=True).spec[:,1]
-        
-        #Diagnostic plotting
-        if p.get('diagnostic',False):
-            from matplotlib.pyplot import ion, draw, cla, yscale, ylim
-            ion()
-            cla()
-#            ax.set_yscale('log')
-#            ax.set_ylim(10,6e3)
-            draw()
+        cl_model_matrix = cl_model.get_as_matrix(lrange=self.lrange).spec[:,1]
         
         #Compute the likelihood  
         dcl = cl_model_matrix - self.signal_matrix_spec
