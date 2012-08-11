@@ -28,7 +28,7 @@ class cobyla(Sampler):
                             cons,
 #                            full_output=True,
                             rhobeg=10,
-                            maxfun=10000, 
+                            rhoend=1e-2,
                             disp=1)*scale
         
         yield xopt, 1, lnl(xopt,p)[0], lnl(xopt,p)[1]
