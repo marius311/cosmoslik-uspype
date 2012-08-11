@@ -25,7 +25,7 @@ class Chain(dict):
     def __init__(self,*args,**kwargs):
         super(Chain,self).__init__(*args,**kwargs)
         for k,v in self.items(): self[k]=atleast_1d(v)
-        if 'weight' not in self: self['weight']=ones(len(self.values()[0]))
+        if self and 'weight' not in self: self['weight']=ones(len(self.values()[0]))
         
     def copy(self):
         """Deep copy the chain so post-processing, etc... works right"""
@@ -299,7 +299,7 @@ def load_chain(path,paramnames=None):
     dir = os.path.dirname(path)
     files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if re.match(os.path.basename(path)+'_[0-9]+',f) or f==os.path.basename(path)]
     if len(files)==1: return load_one_chain(files[0])
-    elif len(files)>1: return Chains(filter(lambda c: c!={}, (load_one_chain(f) for f in files)))
+    elif len(files)>1: return Chains(filter(lambda c: c, (load_one_chain(f) for f in files)))
     else: raise IOError("File not found: "+path) 
 
 
