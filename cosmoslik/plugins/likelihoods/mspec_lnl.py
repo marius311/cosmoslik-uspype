@@ -39,8 +39,7 @@ class mspec_lnl(Likelihood):
         if 'cleaning' in self.mp: s=s.lincombo(self.mp['cleaning'])
         s = s.rescaled(self.mp.get('rescale',1))
         return s
-    
-    
+        
     def get_cl_model(self,p,model=None):
         """ 
         Build an Mspec PowerSpectra object which holds CMB + foreground C_ell's
@@ -77,14 +76,19 @@ class mspec_lnl(Likelihood):
 
         fig.set_size_inches(6*n,6*n/1.6)
         fig.subplots_adjust(hspace=0,wspace=0)
+
+        def slice_signal(sig,sl):      
+            """Slice a signal according to an lrange"""
+            return sig.sliced(sig.binning(slice(*sl)))
             
         for ((i,fri),(j,frj)) in combinations_with_replacement(enumerate(self.processed_signal.get_maps()),2):
             ax=fig.add_subplot(n,n,n*j+i+1)
+            lrange = self.lrange[(fri,frj)]
             if residuals:
-                self.processed_signal.diffed(cl[(fri,frj)]).plot(ax=ax,which=[(fri,frj)],c='k')
+                slice_signal(self.processed_signal,lrange).diffed(slice_signal(cl,lrange)[fri,frj]).plot(ax=ax,which=[(fri,frj)],c='k')
                 ax.plot([cl.ells[0],cl.ells[-1]],[0]*2)
             else:
-                self.processed_signal.sliced(self.processed_signal.binning(slice(*self.lrange[(fri,frj)]))).plot(ax=ax,which=[(fri,frj)],c='k')
+                slice_signal(self.processed_signal,lrange).plot(ax=ax,which=[(fri,frj)],c='k')
                 cl.plot(ax=ax,which=[(fri,frj)],c='k')
                 if show_comps:
                     ax.plot(p['_model']['cl_TT'],c='b')
