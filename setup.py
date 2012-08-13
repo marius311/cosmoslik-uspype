@@ -11,7 +11,7 @@ try:
     has_sphinx = True
 except ImportError:
     has_sphinx = False
-
+    
 
 class sdist(_sdist):
     """
@@ -30,7 +30,8 @@ class sdist(_sdist):
         if src_file in files:
             try: os.unlink(target_file)
             except: pass
-            self.copy_file(src_file, target_file,link=None)    
+            try: self.copy_file(src_file, target_file,link=None)
+            except: pass    
                     
 
 
@@ -56,7 +57,7 @@ class build(_build):
     automatically sees them and installs them. 
     """
     def run(self): 
-        if has_sphinx: self.run_command("build_sphinx") 
+#        if has_sphinx: self.run_command("build_sphinx") 
         _build.run(self)
         #run cosmoslik --build
         #copy files to build/ directory for optional installation
@@ -74,7 +75,7 @@ setup(
     author='Marius Millea',
     author_email='mmillea@ucdavis.edu',
     packages=find_packages(),
-    namespace_packages = ['cosmoslik.plugins'],
+#    namespace_packages = ['cosmoslik','cosmoslik.plugins'],
     url='http://pypi.python.org/pypi/cosmoslik/',
     license='LICENSE.txt',
     description='A modular cosmology likelihood sampler.',

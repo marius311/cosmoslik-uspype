@@ -97,30 +97,36 @@ class camb(Model):
 
         #Call CAMB
         output = self.camb(**cambini)
-        
-        if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],output['scalar'].T))
-        if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],output['lensed'].T))
-        if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],output['tensor'].T))
-        if dotrans: 
-            for x in ['lin_mpk','nonlin_mpk','trans']:
-                if x in required: result[x]=output[x]
-                
-        #Combine cl contributions
-        if docl:
-            for x in ['TT','TE','EE','BB']: 
-                if 'cl_%s'%x in required:
-                    result['cl_%s'%x] = zeros(lmax)
-                    if doscal or dolens: 
-                        result['cl_%s'%x][2:lmax] += (((1-Alens)*scal[x][:lmax-2] if x!='BB' and doscal else 0)) + (Alens*lens[x][:lmax-2] if dolens else 0)
-                    if dotens:
-                        result['cl_%s'%x][2:lmax_tens] += tens[x][:lmax_tens-2]
-            if dolens:
-                if 'cl_pp' in required: result['cl_pp'] = hstack([[0,0],scal['pp'][:lmax-2]])
-                if 'cl_pT' in required: result['cl_pT'] = hstack([[0,0],scal['pT'][:lmax-2]])
 
-        #TODO: figure out where to put this stuff
-        p['z_drag'] = float(output['misc']['z_drag'])
-        p['rs_drag'] = float(output['misc']['rs_drag'])
+        try:
         
+            if doscal: scal = dict(zip(['l','TT','EE','TE','pp','pT'],output['scalar'].T))
+            if dolens: lens = dict(zip(['l','TT','EE','BB','TE'],output['lensed'].T))
+            if dotens: tens = dict(zip(['l','TT','EE','BB','TE'],output['tensor'].T))
+            if dotrans: 
+                for x in ['lin_mpk','nonlin_mpk','trans']:
+                    if x in required: result[x]=output[x]
+                    
+            #Combine cl contributions
+            if docl:
+                for x in ['TT','TE','EE','BB']: 
+                    if 'cl_%s'%x in required:
+                        result['cl_%s'%x] = zeros(lmax)
+                        if doscal or dolens: 
+                            result['cl_%s'%x][2:lmax] += (((1-Alens)*scal[x][:lmax-2] if x!='BB' and doscal else 0)) + (Alens*lens[x][:lmax-2] if dolens else 0)
+                        if dotens:
+                            result['cl_%s'%x][2:lmax_tens] += tens[x][:lmax_tens-2]
+                if dolens:
+                    if 'cl_pp' in required: result['cl_pp'] = hstack([[0,0],scal['pp'][:lmax-2]])
+                    if 'cl_pT' in required: result['cl_pT'] = hstack([[0,0],scal['pT'][:lmax-2]])
+
+            #TODO: figure out where to put this stuff
+            p['z_drag'] = float(output['misc']['z_drag'])
+            p['rs_drag'] = float(output['misc']['rs_drag'])
+        
+        except Exception as e:
+            raise Exception("""An error occurred reading CAMB result: %s \nCAMB output:\n"""%repr(e)+output['stdout'])
+
+
         return result
 
