@@ -50,5 +50,5 @@ class inspector(Sampler):
         yield x, 1, lnl, p
 
 
-def inspect(params):
-    return cosmoslik.sample(params,samplers='inspector').next()[-1]
+def inspect(params, **kwargs):
+    return cosmoslik.sample(params,samplers='inspector', **kwargs).next()[-1]
