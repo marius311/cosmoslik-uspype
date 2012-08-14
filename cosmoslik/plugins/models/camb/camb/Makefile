@@ -8,9 +8,7 @@ include ../../../../../Makefile.inc
 # set of flags just for this module you can set them by hand
 # here:
 # F90C = 
-# F90FLAGS =
-
-
+F90FLAGS += -fPIC
 
 
 
@@ -34,7 +32,7 @@ FISHER=
 #With v4.6+ try -Ofast -march=native -fopenmp
 #On my machine v4.5 is about 20% slower than ifort
 #F90C     = gfortran
-#FFLAGS =  -g
+#F90FLAGS +=  -g -fPIC -O0
 
 
 #Old Intel ifc, add -openmp for multi-processor (some have bugs):

@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-from hubble_theta import *
-=======
->>>>>>> FETCH_HEAD
 from numpy import exp, log
 from cosmoslik.plugins import Deriver
 
