@@ -299,7 +299,11 @@ def load_chain(path,paramnames=None):
     dir = os.path.dirname(path)
     files = [os.path.join(dir,f) for f in os.listdir('.' if dir=='' else dir) if re.match(os.path.basename(path)+'_[0-9]+',f) or f==os.path.basename(path)]
     if len(files)==1: return load_one_chain(files[0])
+<<<<<<< HEAD
     elif len(files)>1: return Chains(filter(lambda c: c, (load_one_chain(f) for f in files)))
+=======
+    elif len(files)>1: return Chains(filter(lambda c: c!={}, (load_one_chain(f) for f in files)))
+>>>>>>> f1fb265b8ac203416c6fa3796844c47ddea66a94
     else: raise IOError("File not found: "+path) 
 
 
