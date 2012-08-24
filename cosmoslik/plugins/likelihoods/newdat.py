@@ -29,7 +29,8 @@ class newdat(Likelihood):
             for x,nx in zip(self.xs,nxs):
                 if nx!=0:
                     if f.next().strip()!=x: raise Exception('Error reading newdat file. Expected bandpowers in order %s'%self.xs)
-                    self.bands[x] = array([fromstring(remove_comments(s),sep=' ') for s in islice(f,nx)])*fac
+                    self.bands[x] = array([fromstring(remove_comments(s),sep=' ') for s in islice(f,nx)])
+                    self.bands[x][:,1:5] *= fac
                     for _ in islice(f,nx): pass #ignore correlation matrix
         
             self.lmax = max(chain(*[b[:,6] for b in self.bands.values()]))
