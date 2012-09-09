@@ -56,11 +56,11 @@ def main(args):
         #TODO: allow mixing CAMB/PICO runs
         nnodes *= len(inifiles)
             
-        name = '__'.join([inifile.replace('cosmoslik.','').replace('params.','').replace('.ini','') for inifile in inifiles])
+        name = 'cosmoslik'
         sys.argv.remove('--qsub')
         
-        proc = Popen(["qsub","-q","usplanck","-l",
-                      "nodes=%s:ppn=%s,pvmem=20gb"%(nnodes,ppn),
+        proc = Popen(["qsub","-q","usplanck",
+                      "-l","nodes=%s:ppn=%s,pvmem=20gb"%(nnodes,ppn),
                       "-l","walltime=%s:00:00"%wall,
                       "-N",name,"-o","%s.log"%name,"-j","oe","-V"],stdin=PIPE,stdout=PIPE)
         
@@ -68,8 +68,8 @@ def main(args):
                            (os.path.dirname(os.path.abspath(inifile)),
                             sys.executable,
                             nproc,
-                            inifile,
-                            inifile.replace('.ini','')+'.log') for inifile in inifiles])
+                            os.path.basename(inifile),
+                            os.path.basename(inifile).replace('.ini','')+'.log') for inifile in inifiles])
         print cmd
         proc.stdin.write(cmd)
         proc.stdin.close()
