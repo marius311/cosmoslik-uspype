@@ -64,7 +64,7 @@ def main(args):
                       "-l","walltime=%s:00:00"%wall,
                       "-N",name,"-o","%s.log"%name,"-j","oe","-V"],stdin=PIPE,stdout=PIPE)
         
-        cmd = ' &\n'.join(['(cd %s && %s -m cosmoslik -n %i %s > %s)'%\
+        cmd = ' &\n'.join(['(cd %s && %s -m cosmoslik -n %i %s &> %s)'%\
                            (os.path.dirname(os.path.abspath(inifile)),
                             sys.executable,
                             nproc,
