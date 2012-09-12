@@ -23,15 +23,17 @@ class baseline_cleaning(egfs):
                 raise Exception("When setting tied_dusty_alpha=True delete egfs.dgcl.alpha") 
 
     def get_colors(self, p):
-        return {'dgpo':'g','dgcl':'g','radio':'orange','tsz':'magenta','ksz':'cyan'}
+        return {'dgpo':'g','dgcl_lin':'g','dgcl_nonlin':'g','radio':'orange','tsz':'magenta','ksz':'cyan','gal':'r'}
 
     def get_egfs(self, p, spectra, fluxcut, freqs, lmax, **kwargs):
         if spectra != 'cl_TT': return zeros(lmax)
         
+        egfs = p.get('egfs',{})
         lowp = p.get(('egfs','low_fr'),{})
         highp = p.get(('egfs','high_fr'),{})
         
         if lowp.get('tied_dusty_alpha',False): lowp['dgcl','alpha'] = lowp['dgpo','alpha']
+        highp['dgpo','cor143'] = highp['dgpo','cor217']
         
         fr1, fr2 = freqs
         
@@ -46,8 +48,7 @@ class baseline_cleaning(egfs):
                 dustcomp[i] = {'dgpo': sqrt(highp['dgpo','amp']) * (arange(lmax)/3000.), 
                                'dgcl_lin': sqrt(highp['dgcl','amp_lin'] * self.clustered_template[:lmax]),
                                'dgcl_nonlin': sqrt(highp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8))}
-
-
+    
         ffr1, ffr2 = fr1['dust'], fr2['dust']
 
         if 130<ffr1<150 and ffr2>300 or ffr1>300 and 130<ffr2<150: corr = highp['dgpo','cor143']
@@ -61,6 +62,8 @@ class baseline_cleaning(egfs):
         comps.update({'radio': lowp['radio','amp'] * (fluxcut / lowp['radio','norm_fluxcut']) ** (2+lowp['radio','gamma']) * (arange(lmax)/3000.) * plaw_dep2(fr1['radio'], fr2['radio'], lowp['radio','norm_fr'], lowp['radio','alpha']),
                       'tsz': lowp['tsz','amp'] * self.tsz_template[:lmax] * tszdep(fr1['tsz'],fr2['tsz'],lowp['tsz','norm_fr']),
                       'ksz': lowp['ksz','amp'] * self.ksz_template[:lmax]})
+
+        if all(210<ffr<230 for ffr in (ffr1,ffr2)): comps['gal'] = lowp.get(('gal','amp'),0) * (arange(lmax)/self.norm_ell)**lowp.get(('gal','tilt'),0)
             
         return comps
     
@@ -77,11 +80,11 @@ def tszdep(fr1,fr2,fr0):
 
 def plaw_dep(fr,fr0,alpha):
     """A power-law frequency dependence."""
-    return (fr/fr0)**alpha / dBdT(fr,fr0)
+    return (float(fr)/fr0)**alpha / dBdT(fr,fr0)
 
 def plaw_dep2(fr1,fr2,fr0,alpha):
     """A power-law frequency dependence."""
-    return (fr1*fr2/fr0**2)**alpha / dBdT(fr1,fr0) / dBdT(fr1,fr0)
+    return (float(fr1)*fr2/fr0**2)**alpha / dBdT(fr1,fr0) / dBdT(fr2,fr0)
 
 
 def _unpicklable(): pass 
