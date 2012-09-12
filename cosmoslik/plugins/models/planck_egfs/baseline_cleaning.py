@@ -23,7 +23,7 @@ class baseline_cleaning(egfs):
                 raise Exception("When setting tied_dusty_alpha=True delete egfs.dgcl.alpha") 
 
     def get_colors(self, p):
-        return {'dgpo':'g','dgcl_lin':'g','dgcl_nonlin':'g','radio':'orange','tsz':'magenta','ksz':'cyan','gal':'r'}
+        return {'dgpo':'g','dgcl':'g','radio':'orange','tsz':'magenta','ksz':'cyan' ,'gal':'r'}
 
     def get_egfs(self, p, spectra, fluxcut, freqs, lmax, **kwargs):
         if spectra != 'cl_TT': return zeros(lmax)
@@ -42,13 +42,14 @@ class baseline_cleaning(egfs):
         for i,fr in enumerate(freqs):
             if fr['dust']<300:
                 dustcomp[i] = {'dgpo': sqrt(lowp['dgpo','amp']) * (arange(lmax)/3000.) * plaw_dep(fr['dust'], lowp['dgpo','norm_fr'], lowp['dgpo','alpha']),
-                               'dgcl_lin': sqrt(lowp['dgcl','amp_lin'] * self.clustered_template[:lmax]) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha']),
-                               'dgcl_nonlin': sqrt(lowp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8)) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'])}
+                               'dgcl': sqrt(lowp['dgcl','amp_lin'] * self.clustered_template[:lmax]) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'] + 
+                                            lowp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8)) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'])}
             else:
                 dustcomp[i] = {'dgpo': sqrt(highp['dgpo','amp']) * (arange(lmax)/3000.), 
-                               'dgcl_lin': sqrt(highp['dgcl','amp_lin'] * self.clustered_template[:lmax]),
-                               'dgcl_nonlin': sqrt(highp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8))}
-    
+                               'dgcl': sqrt(highp['dgcl','amp_lin'] * self.clustered_template[:lmax] +
+                                            highp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8))}
+
+
         ffr1, ffr2 = fr1['dust'], fr2['dust']
 
         if 130<ffr1<150 and ffr2>300 or ffr1>300 and 130<ffr2<150: corr = highp['dgpo','cor143']
@@ -56,9 +57,7 @@ class baseline_cleaning(egfs):
         else: corr = 1
         
         comps = {}
-        for x in ['dgpo','dgcl_lin','dgcl_nonlin']:
-            comps[x] = corr*dustcomp[0][x]*dustcomp[1][x]
-            
+        for x in ['dgpo','dgcl']: comps[x] = corr*dustcomp[0][x]*dustcomp[1][x]
         comps.update({'radio': lowp['radio','amp'] * (fluxcut / lowp['radio','norm_fluxcut']) ** (2+lowp['radio','gamma']) * (arange(lmax)/3000.) * plaw_dep2(fr1['radio'], fr2['radio'], lowp['radio','norm_fr'], lowp['radio','alpha']),
                       'tsz': lowp['tsz','amp'] * self.tsz_template[:lmax] * tszdep(fr1['tsz'],fr2['tsz'],lowp['tsz','norm_fr']),
                       'ksz': lowp['ksz','amp'] * self.ksz_template[:lmax]})
