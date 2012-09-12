@@ -42,8 +42,8 @@ class baseline_cleaning(egfs):
         for i,fr in enumerate(freqs):
             if fr['dust']<300:
                 dustcomp[i] = {'dgpo': sqrt(lowp['dgpo','amp']) * (arange(lmax)/3000.) * plaw_dep(fr['dust'], lowp['dgpo','norm_fr'], lowp['dgpo','alpha']),
-                               'dgcl': sqrt(lowp['dgcl','amp_lin'] * self.clustered_template[:lmax]) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'] + 
-                                            lowp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8)) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'])}
+                               'dgcl': sqrt((lowp['dgcl','amp_lin'] * self.clustered_template[:lmax] + 
+                                             lowp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8))) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'])}
             else:
                 dustcomp[i] = {'dgpo': sqrt(highp['dgpo','amp']) * (arange(lmax)/3000.), 
                                'dgcl': sqrt(highp['dgcl','amp_lin'] * self.clustered_template[:lmax] +
