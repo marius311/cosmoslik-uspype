@@ -23,12 +23,11 @@ class baseline_cleaning(egfs):
                 raise Exception("When setting tied_dusty_alpha=True delete egfs.dgcl.alpha") 
 
     def get_colors(self, p):
-        return {'dgpo':'g','dgcl':'g','radio':'orange','tsz':'magenta','ksz':'cyan' ,'gal':'r'}
+        return {'dgpo':'g','dgcl':'g','radio':'orange','tsz':'magenta','ksz':'cyan'}
 
     def get_egfs(self, p, spectra, fluxcut, freqs, lmax, **kwargs):
         if spectra != 'cl_TT': return zeros(lmax)
         
-        egfs = p.get('egfs',{})
         lowp = p.get(('egfs','low_fr'),{})
         highp = p.get(('egfs','high_fr'),{})
         
@@ -52,8 +51,8 @@ class baseline_cleaning(egfs):
 
         ffr1, ffr2 = fr1['dust'], fr2['dust']
 
-        if 130<ffr1<150 and ffr2>300 or ffr1>300 and 130<ffr2<150: corr = highp['dgpo','cor143']
-        if 210<ffr1<230 and ffr2>300 or ffr1>300 and 210<ffr2<230: corr = highp['dgpo','cor217']
+        if (130<ffr1<150 and ffr2>300) or (ffr1>300 and 130<ffr2<150): corr = highp['dgpo','cor143']
+        elif (210<ffr1<230 and ffr2>300) or (ffr1>300 and 210<ffr2<230): corr = highp['dgpo','cor217']
         else: corr = 1
         
         comps = {}
@@ -61,8 +60,6 @@ class baseline_cleaning(egfs):
         comps.update({'radio': lowp['radio','amp'] * (fluxcut / lowp['radio','norm_fluxcut']) ** (2+lowp['radio','gamma']) * (arange(lmax)/3000.) * plaw_dep2(fr1['radio'], fr2['radio'], lowp['radio','norm_fr'], lowp['radio','alpha']),
                       'tsz': lowp['tsz','amp'] * self.tsz_template[:lmax] * tszdep(fr1['tsz'],fr2['tsz'],lowp['tsz','norm_fr']),
                       'ksz': lowp['ksz','amp'] * self.ksz_template[:lmax]})
-
-        if all(210<ffr<230 for ffr in (ffr1,ffr2)): comps['gal'] = lowp.get(('gal','amp'),0) * (arange(lmax)/self.norm_ell)**lowp.get(('gal','tilt'),0)
             
         return comps
     
