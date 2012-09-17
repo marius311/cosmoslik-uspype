@@ -88,6 +88,8 @@ def _mcmc(x,lnl,p):
     cur_lnl, cur_weight, cur_x, cur_extra = inf, 0, x, None
 
     samples, weights = [], [] 
+
+    nbranches = mpi.get_size()
     
     def update(v): 
         if v!=None: p.update(v)
@@ -104,8 +106,10 @@ def _mcmc(x,lnl,p):
         
         cur_lnl, cur_x, cur_extra = mpi.mpi_consistent((cur_lnl, cur_x, makepicklable(cur_extra)))
         
-        test_x = [multivariate_normal(cur_x,p['_cov']/len(x)*p.get('proposal_scale',2.4)**2) for _ in range(mpi.get_size())]
-        branches = mpi.mpi_map(step, zip([cur_lnl]*mpi.get_size(),test_x), distribute=False)
+        #nbranches = int(max(mpi.get_size(),mean(weights[len(weights)/2:])+1))
+        nbranches = mpi.get_size()
+        test_x = [multivariate_normal(cur_x,p['_cov']/len(x)*p.get('proposal_scale',2.4)**2) for _ in range(nbranches)]
+        branches = mpi.mpi_map(step, zip([cur_lnl]*nbranches,test_x), distribute=False)
 
         if mpi.is_master():
             if i%500==0 and i>1000: 
