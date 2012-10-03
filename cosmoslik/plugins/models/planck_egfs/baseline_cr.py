@@ -3,8 +3,75 @@ from .. egfs import egfs
 from numpy import arange, loadtxt, hstack, pi, exp, zeros, sqrt
 import os
 
-class baseline_cleaning(egfs):
+class baseline_cr(egfs):
     """
+    
+    Notes:
+    
+    *amplitudes are D_ell at 3000
+    
+    [egfs]{
+        [low_fr]{
+            tied_dusty_alpha=True
+            [dgpo]{
+                amp = 6
+                alpha = 3.5 
+                norm_fr = 143
+            }
+            [dgcl]{
+                amp_lin = 1
+                amp_nonlin = 1 
+                norm_fr = 143  
+            }
+            [radio]{
+                amp = 60 
+                alpha = -0.5 
+                gamma = -1 
+                norm_fr = 143
+                norm_fluxcut = 200
+            }
+            [tsz]{
+                amp = 5
+                norm_fr = 143
+            }
+            [ksz]{
+                amp = 0 
+            }
+        }
+    
+        [high_fr_353]{
+            cor = 0.8
+            [dgpo]{
+                amp = 1e6
+            }
+            [dgcl]{
+                amp_lin = 1e6 
+                amp_nonlin = 1e6
+            }
+        }
+        
+        [high_fr_545]{
+            cor = 0.6
+            [dgpo]{
+                amp = 1e8
+            }
+            [dgcl]{
+                amp_lin = 1e8
+                amp_nonlin = 1e8
+            }
+        }
+
+        [high_fr_857]{
+            cor = 0.4
+            [dgpo]{
+                amp = 1e10
+            }
+            [dgcl]{
+                amp_lin = 1e10
+                amp_nonlin = 1e10
+            }
+        }
+    }
     
     """
     
@@ -29,12 +96,15 @@ class baseline_cleaning(egfs):
         if spectra != 'cl_TT': return zeros(lmax)
         
         lowp = p.get(('egfs','low_fr'),{})
-        highp = p.get(('egfs','high_fr'),{})
         
         if lowp.get('tied_dusty_alpha',False): lowp['dgcl','alpha'] = lowp['dgpo','alpha']
-        highp['dgpo','cor143'] = highp['dgpo','cor217']
         
         fr1, fr2 = freqs
+        
+        def fr2label(fr):
+            if 300<fr<500: return '353'
+            elif 500<fr<800: return '545'
+            else: return '857'
         
         dustcomp = {}
         
@@ -44,16 +114,19 @@ class baseline_cleaning(egfs):
                                'dgcl': sqrt(lowp['dgcl','amp_lin'] * self.clustered_template[:lmax]) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha']) + 
                                             lowp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8) * plaw_dep(fr['dust'], lowp['dgcl','norm_fr'], lowp['dgcl','alpha'])}
             else:
+                highp = p['egfs','high_fr_%s'%fr2label(fr['dust'])]
+
                 dustcomp[i] = {'dgpo': sqrt(highp['dgpo','amp']) * (arange(lmax)/3000.), 
                                'dgcl': sqrt(highp['dgcl','amp_lin'] * self.clustered_template[:lmax] +
                                             highp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8))}
 
 
         ffr1, ffr2 = fr1['dust'], fr2['dust']
-
-        if (130<ffr1<150 and ffr2>300) or (ffr1>300 and 130<ffr2<150): corr = highp['dgpo','cor143']
-        elif (210<ffr1<230 and ffr2>300) or (ffr1>300 and 210<ffr2<230): corr = highp['dgpo','cor217']
-        else: corr = 1
+        
+        if min([ffr1,ffr2])<300 and max([ffr1,ffr2])>300: 
+            corr = p['egfs','high_fr_%s'%fr2label(max([ffr1,ffr2])),'cor']
+        else: 
+            corr=1
         
         comps = {}
         for x in ['dgpo','dgcl']: comps[x] = corr*dustcomp[0][x]*dustcomp[1][x]
