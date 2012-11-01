@@ -5,7 +5,7 @@ import os
 class camspec(egfs):
     
     def init(self, p): 
-        self.norm_ell = float(p.get(('egfs','norm_ell'),1500))
+        self.norm_ell = float(p.get(('egfs','norm_ell'),3000))
         
         self.dir = os.path.dirname(os.path.abspath(__file__))
         padding = zeros(10000)
@@ -33,12 +33,14 @@ class camspec(egfs):
         elif frlbl==(143,143):
             comps['ps_143'] = p['a_ps_143']*(arange(lmax)/self.norm_ell)**2
             comps['cib_143'] = p['a_cib_143']*(arange(lmax)/self.norm_ell)**0.7
+            comps['tsz_cib'] = - p['xi'] * sqrt(p['a_tsz'] * self.tsz_template[:lmax] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_143'] * (arange(lmax)/self.norm_ell)**0.7)
         elif frlbl==(217,217):
             comps['ps_217'] = p['a_ps_217']*(arange(lmax)/self.norm_ell)**2
-            comps['cib_217'] = p['a_ps_217']*(arange(lmax)/self.norm_ell)**0.7
-        elif sorted(frlbl)==(143,217):
+            comps['cib_217'] = p['a_cib_217']*(arange(lmax)/self.norm_ell)**0.7
+        elif tuple(sorted(frlbl))==(143,217):
             comps['ps_143_217'] = p['r_ps']*sqrt(p['a_ps_143']*p['a_ps_217'])*(arange(lmax)/self.norm_ell)**2
             comps['cib_143_217'] = p['r_cib']*sqrt(p['a_cib_143']*p['a_cib_217'])*(arange(lmax)/self.norm_ell)**0.7
+            comps['tsz_cib'] = - p['xi'] * sqrt(p['a_tsz'] * self.tsz_template[:lmax] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_217'] * (arange(lmax)/self.norm_ell)**0.7)
             
         return comps
             

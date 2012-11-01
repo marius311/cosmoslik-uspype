@@ -66,6 +66,10 @@ class camspec(Likelihood):
         self.fluxcut = p['camspec','fluxcut']
         
     
+    def get_required_models(self,p):
+        return ['cl_TT','egfs']
+    
+    
     def get_cl_model(self, p, model=None):
         if model is None: model = p['_model']
         clmodel = {'cmb':model['cl_TT']}

@@ -70,6 +70,9 @@ class camspec_official(Likelihood):
                                               'ksz_file', 
                                               'beam_file']})
     
+    def get_required_models(self,p):
+        return ['cl_TT']
+
     def lnl(self, p, model):
         
         def tocl(dl): return hstack([[0],dl[1:]/arange(1,len(dl))/(arange(1,len(dl))+1)])
