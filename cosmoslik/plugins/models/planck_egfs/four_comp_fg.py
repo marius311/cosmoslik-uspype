@@ -28,7 +28,6 @@ class four_comp_fg(egfs):
         comps = {'ps':          p_egfs.get('Aps',0) * (arange(lmax)/self.norm_ell)**2,
                  'cl_lin':      p_egfs.get('Acl_lin',0) * self.clustered_template[:lmax],
                  'cl_nonlin':   p_egfs.get('Acl_nonlin',0) * (arange(lmax)/self.norm_ell)**p_egfs.get('tilt',0.8),
-                 'tsz':         p_egfs.get('Atsz',0) * self.tsz_template[:lmax],
-                 'gal':         p_egfs.get('Agal',0) * (arange(lmax)/self.norm_ell)**p_egfs.get('tilt_gal',-0.7)}
+                 'tsz':         p_egfs.get('Atsz',0) * self.tsz_template[:lmax]}
         
         return comps

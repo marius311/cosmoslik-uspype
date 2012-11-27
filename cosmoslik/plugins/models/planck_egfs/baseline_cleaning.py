@@ -46,7 +46,7 @@ class baseline_cleaning(egfs):
             else:
                 dustcomp[i] = {'dgpo': sqrt(highp['dgpo','amp']) * (arange(lmax)/3000.), 
                                'dgcl': sqrt(highp['dgcl','amp_lin'] * self.clustered_template[:lmax] +
-                                            highp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**p.get(('dgcl','tilt' ),0.8))}
+                                            highp['dgcl','amp_nonlin'] * (arange(lmax)/self.norm_ell)**highp.get(('dgcl','tilt'),0.8))}
 
 
         ffr1, ffr2 = fr1['dust'], fr2['dust']
