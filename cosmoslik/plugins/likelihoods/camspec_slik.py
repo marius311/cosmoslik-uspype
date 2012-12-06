@@ -10,7 +10,7 @@ class camspec_slik(Likelihood):
         self.labels = [(100,100),(143,143),(217,217),(143,217)]        
         self.freqs = {x:x for x in self.labels}
         self.in_lrange = [(50,1201),(50,2001),(500,2501),(500,2501)]
-        self.nl = [u-l for u,l in self.in_lrange]
+        self.nl = [u-l for l,u in self.in_lrange]
         self.ells = hstack([arange(*r) for r in self.in_lrange])
         self.out_lrange = p.get(('camspec','lrange'),self.in_lrange)
         
@@ -27,7 +27,7 @@ class camspec_slik(Likelihood):
         with open(p['camspec','like_file'],'r') as f: self.x, cv = cPickle.load(f)
         self.x *= (self.ells*(self.ells+1))
         cv = ((cv*self.ells*(self.ells+1)).T*self.ells*(self.ells+1)).T
-        self.cho_cov = cho_factor(cv[ix_(self.slice,self.slice)])
+        self.cho_cov = inv(cv[ix_(self.slice,self.slice)])
         
         
     def get_required_models(self, model):
@@ -35,7 +35,7 @@ class camspec_slik(Likelihood):
         
     def lnl(self, p, model):
         dcl = self.x[self.slice] - hstack(self.get_cl_model(p, model))[self.slice]
-        return dot(dcl,cho_solve(self.cho_cov,dcl))/2
+        return dot(dcl,dot(self.cho_cov,dcl))/2
     
     def get_cl_model(self, p, model):
         return [model['cl_TT'][slice(*r)] + 

@@ -33,7 +33,7 @@ class camspec(egfs):
         elif frlbl==(143,143):
             comps['ps_143'] = p['a_ps_143']*(arange(lmax)/self.norm_ell)**2
             comps['cib_143'] = p['a_cib_143']*(arange(lmax)/self.norm_ell)**0.7
-            comps['tsz_cib'] = - p['xi'] * sqrt(p['a_tsz'] * self.tsz_template[:lmax] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_143'] * (arange(lmax)/self.norm_ell)**0.7)
+            comps['tsz_cib'] = - 2 * p['xi'] * sqrt(p['a_tsz'] * self.tsz_template[:lmax] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_143'] * (arange(lmax)/self.norm_ell)**0.7)
         elif frlbl==(217,217):
             comps['ps_217'] = p['a_ps_217']*(arange(lmax)/self.norm_ell)**2
             comps['cib_217'] = p['a_cib_217']*(arange(lmax)/self.norm_ell)**0.7
