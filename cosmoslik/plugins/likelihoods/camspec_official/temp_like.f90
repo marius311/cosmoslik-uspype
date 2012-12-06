@@ -117,6 +117,7 @@ contains
 
     integer :: ie1,ie2,if1,if2
 
+    
     if (needinit) then
        print*, 'like_init should have been called before attempting to call calc_like.'
        stop
@@ -126,7 +127,6 @@ contains
     allocate(X_f(1:nX))      
     allocate(X_beam_corr_model(1:nX))      
     allocate(Y(1:nX))
-
 
 
     if(Nspec.ne.4) then
@@ -139,7 +139,7 @@ contains
     do l = lminX(1), lmaxX(1)
 
        zell = dfloat(l)
-       X_f(l - lminX(1) + 1) = A_ps_100*1.d-6 + &
+       X_f(l - lminX(1) + 1) = A_ps_100*1.d-6/9.d0 + &
             A_ksz*ksz_temp(l)/dfloat(l*(l+1))+ &
             A_sz*2.022d0*sz_143_temp(l)/dfloat(l*(l+1))
        X_data(l - lminX(1) + 1) = X(l - lminX(1) + 1)
@@ -156,10 +156,10 @@ contains
     do l = lminX(2), lmaxX(2)
        zell = dfloat(l)
        zCIB = 1.134d0*A_cib_143*(dfloat(l)/3000.)**(0.8)/dfloat(l*(l+1))
-       X_f(l - lminX(2) + npt(2)) = A_ps_143*1.d-6 + zCIB + &
+       X_f(l - lminX(2) + npt(2)) = A_ps_143*1.d-6/9.d0 + zCIB + &
             A_ksz*ksz_temp(l)/dfloat(l*(l+1))+&
-            A_sz*0.95d0*sz_143_temp(l)/dfloat(l*(l+1)) + &
-            (-2.0)*sqrt(1.134d0*A_cib_143*0.95d0*A_sz*4.796)*xi*tszxcib_temp(l)/dfloat(l*(l+1))
+            A_sz*0.95d0*sz_143_temp(l)/dfloat(l*(l+1))  &
+            -2.0*sqrt(1.134d0*A_cib_143*0.95d0*A_sz*4.796)*xi*tszxcib_temp(l)/dfloat(l*(l+1))
        X_data(l - lminX(2) +npt(2)) = X(l - lminX(2) + npt(2))
        X_theory(l-lminX(2) + npt(2)) = cell_cmb(l) 
        X_beam_corr_model(l-lminX(2)+npt(2)) = &
@@ -173,7 +173,7 @@ contains
     do l = lminX(3), lmaxX(3)
        zell = dfloat(l)
        zCIB = 1.33d0*A_cib_217*(dfloat(l)/3000.)**(0.8)/dfloat(l*(l+1))
-       X_f(l - lminX(3) + npt(3) ) = A_ps_217*1.d-6 + zCIB &
+       X_f(l - lminX(3) + npt(3) ) = A_ps_217*1.d-6/9.d0 + zCIB &
             + A_ksz*ksz_temp(l)/dfloat(l*(l+1))   
        X_data(l - lminX(3) + npt(3)) = X(l - lminX(3) + npt(3))
        X_theory(l-lminX(3) + npt(3)) = cell_cmb(l)
@@ -191,7 +191,7 @@ contains
        zCIB = 1.23d0*dsqrt(A_cib_143*A_cib_217)*(dfloat(l)/3000.)**(0.8) &
             /dfloat(l*(l+1))
        X_f(l - lminX(4) + npt(4) ) = &
-            r_ps*dsqrt(A_ps_143*A_ps_217)*1.d-6 + r_cib*zCIB &
+            r_ps*dsqrt(A_ps_143*A_ps_217)*1.d-6/9.d0 + r_cib*zCIB &
             +A_ksz*ksz_temp(l)/dfloat(l*(l+1))  &
             -sqrt(1.33d0*A_cib_217*0.95d0*A_sz*4.796)*xi*tszxcib_temp(l)/dfloat(l*(l+1))  
        X_data(l - lminX(4) + npt(4)) =  X(l - lminX(4) + npt(4))
@@ -200,7 +200,6 @@ contains
             ( X_theory(l - lminX(4) + npt(4))+ X_f(l - lminX(4) + npt(4)))* &
             corrected_beam(4,l)/dsqrt(cal1*cal2)
     end do
-
 
     do i = 1, nX
        Y(i) = X_data(i) - X_beam_corr_model(i)
@@ -229,8 +228,8 @@ contains
     enddo
 
 
-    zlike=zlike+((cal2/cal1-1.0056d0)/0.00105d0)**2 &
-         +((cal0/cal1-1.0127d0)/0.0005d0)**2
+    zlike=zlike+((cal2/cal1-0.9966d0)/0.0015d0)**2 &
+         +((cal0/cal1-1.0006d0)/0.0004d0)**2
 
 
     deallocate(X_theory)
