@@ -21,8 +21,13 @@ class spt_s12(Likelihood):
             draw()
             
         #Apply windows and calculate likelihood
-        dcl = self.spec-cl
-        return dot(dcl,cho_solve(self.sigma, dcl))/2
+        dcl = self.spec * p.get(('spt_s12','a_calib'),1) - cl
+        lnl = dot(dcl,cho_solve(self.sigma, dcl))/2
+
+        #Calibration prior
+        if self.calib_prior: lnl += (p.get(('spt_s12','a_calib'),1) - 1)**2/2/0.026**2
+
+        return lnl
 
 
     def plot(self,p, cl=None,
@@ -65,9 +70,10 @@ class spt_s12(Likelihood):
     def init(self, p):
         
         self.datadir = os.path.join(os.path.dirname(__file__),'spt_lps12_20120828')
-        
+            
         #Load spectrum and covariance
-        with open(os.path.join(self.datadir,'Spectrum_spt2500deg2_lps12.newdat')) as f:
+        fn = 'Spectrum_spt2500deg2_lps12%s.newdat'%('_nocal' if ('spt_s12','a_calib') in p else '')
+        with open(os.path.join(self.datadir,fn)) as f:
             while 'TT' not in f.readline(): pass
             self.spec=array([fromstring(f.readline(),sep=' ')[1] for _ in range(47)])
             self.sigma=array([fromstring(f.readline(),sep=' ') for _ in range(94)])[47:]
@@ -89,6 +95,8 @@ class spt_s12(Likelihood):
 
         self.freq = {'dust':154, 'radio': 151, 'tsz':153}
         self.fluxcut = 50
+
+        self.calib_prior = p.get(('spt_s12','calib_prior'),True)
         
     
 

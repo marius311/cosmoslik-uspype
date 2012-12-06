@@ -48,7 +48,7 @@ class planck_lowell_br(Likelihood):
 
 
         if not gibbsfile: raise Exception('Please specify the Gibbs file in the parameter file with:\n[planck_lowell_br]{\n  gibbs_file=/path/to/file\n}')
-        elif not os.path.exists(gibbsfile): raise Exception("The Gibbs file you specified does not exist: '%s'"%datadir)
+        elif not os.path.exists(gibbsfile): raise Exception("The Gibbs file you specified does not exist: '%s'"%gibbsfile)
 
         self.pywmap = SubprocessExtension('pywmap',globals())
         self.pywmap.wmapinit(ttmin,ttmax,temin,temax,os.path.normpath(datadir)+'/',os.path.normpath(gibbsfile))
