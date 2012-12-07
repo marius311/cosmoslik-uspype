@@ -92,5 +92,5 @@ class camspec(Likelihood):
                                         beam_coeffs=[[p.get(('camspec','spec_%i'%i,'mode_%i'%j),0)
                                                       for j in range(self.pycamspec.num_modes_per_beam)]
                                                      for i in range(self.pycamspec.beam_nspec)],
-                                        **{x:p['camspec',x] for x in ['cal0', 'cal1', 'cal2']})
+                                        **{x:p.get(('camspec',x),1) for x in ['cal0', 'cal1', 'cal2']})
         

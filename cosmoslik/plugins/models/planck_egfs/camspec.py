@@ -10,8 +10,9 @@ class camspec(egfs):
         self.dir = os.path.dirname(os.path.abspath(__file__))
         padding = zeros(10000)
         def todl(cl,norm=self.norm_ell): return (lambda dl: dl/dl[norm])((lambda l: cl*l*(l+1)/2/pi)(arange(cl.shape[0])))
-        self.tsz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"tsz.dat"))[:,1],padding]))
-        self.ksz_template = todl(hstack([[0,0],loadtxt(os.path.join(self.dir,"ksz_ov.dat"))[:,1],padding]))
+        self.tsz_template = hstack([[0,0],loadtxt(os.path.join(self.dir,"camspec_templates/tsz_143_eps0.50.dat"))[:,1],padding])
+        self.ksz_template = hstack([[0,0],loadtxt(os.path.join(self.dir,"camspec_templates/cl_ksz_148_trac.dat"))[:,1],padding])
+        self.tszxcib_template = hstack([[0,0],loadtxt(os.path.join(self.dir,"camspec_templates/sz_x_cib_template.dat"))[:,1],padding])
 
     def get_egfs(self, p, spectra, lmax, freqs, **kwargs):
         
@@ -33,14 +34,14 @@ class camspec(egfs):
         elif frlbl==(143,143):
             comps['ps_143'] = p['a_ps_143']*(arange(lmax)/self.norm_ell)**2
             comps['cib_143'] = p['a_cib_143']*(arange(lmax)/self.norm_ell)**0.7
-            comps['tsz_cib'] = - 2 * p['xi'] * sqrt(p['a_tsz'] * self.tsz_template[:lmax] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_143'] * (arange(lmax)/self.norm_ell)**0.7)
+            comps['tsz_cib'] = - 2 * p['xi'] * sqrt(p['a_tsz'] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_143']) * self.tszxcib_template[:lmax]
         elif frlbl==(217,217):
             comps['ps_217'] = p['a_ps_217']*(arange(lmax)/self.norm_ell)**2
             comps['cib_217'] = p['a_cib_217']*(arange(lmax)/self.norm_ell)**0.7
         elif tuple(sorted(frlbl))==(143,217):
             comps['ps_143_217'] = p['r_ps']*sqrt(p['a_ps_143']*p['a_ps_217'])*(arange(lmax)/self.norm_ell)**2
             comps['cib_143_217'] = p['r_cib']*sqrt(p['a_cib_143']*p['a_cib_217'])*(arange(lmax)/self.norm_ell)**0.7
-            comps['tsz_cib'] = - p['xi'] * sqrt(p['a_tsz'] * self.tsz_template[:lmax] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_217'] * (arange(lmax)/self.norm_ell)**0.7)
+            comps['tsz_cib'] = - p['xi'] * sqrt(p['a_tsz'] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_217']) * self.tszxcib_template[:lmax]
             
         return comps
             

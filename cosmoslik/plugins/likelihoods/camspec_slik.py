@@ -1,12 +1,11 @@
 from cosmoslik.plugins import Likelihood
-from numpy import hstack, arange, array, cumsum, frombuffer, dot, ix_
+from numpy import hstack, arange, array, cumsum, frombuffer, dot, ix_, ones, sqrt
 from scipy.linalg import cho_factor, cho_solve, inv
 import cPickle
 
 class camspec_slik(Likelihood):
     
     def init(self,p):
-        
         self.labels = [(100,100),(143,143),(217,217),(143,217)]        
         self.freqs = {x:x for x in self.labels}
         self.in_lrange = [(50,1201),(50,2001),(500,2501),(500,2501)]
@@ -25,8 +24,9 @@ class camspec_slik(Likelihood):
                              if r])
         
         with open(p['camspec','like_file'],'r') as f: self.x, cv = cPickle.load(f)
-        self.x *= (self.ells*(self.ells+1))
-        cv = ((cv*self.ells*(self.ells+1)).T*self.ells*(self.ells+1)).T
+        todl = self.ells*(self.ells+1)
+        self.x *= todl
+        cv = ((cv*todl).T*todl).T
         self.cho_cov = inv(cv[ix_(self.slice,self.slice)])
         
         
@@ -34,8 +34,12 @@ class camspec_slik(Likelihood):
         return ['cl_TT','egfs']
         
     def lnl(self, p, model):
-        dcl = self.x[self.slice] - hstack(self.get_cl_model(p, model))[self.slice]
+        dcl = self.get_x(p)[self.slice] - hstack(self.get_cl_model(p, model))[self.slice]
         return dot(dcl,dot(self.cho_cov,dcl))/2
+    
+    def get_x(self,p):
+        cal = [p.get(('camspec','cal%i'%i),1) for i in range(3)]
+        return self.x * hstack([ones(n)*a for n,a in zip(self.nl,[cal[0],cal[1],cal[2],sqrt(cal[1]*cal[2])])])
     
     def get_cl_model(self, p, model):
         return [model['cl_TT'][slice(*r)] + 
