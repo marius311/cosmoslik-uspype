@@ -52,14 +52,9 @@ class camspec(Likelihood):
     """
     
     def init(self, p):
-        from pycamspec import pycamspec
-        self.pycamspec = pycamspec
-#        self.pycamspec = SubprocessExtension('pycamspec',globals())
+        self.pycamspec = SubprocessExtension('pycamspec',globals())
         self.pycamspec.like_init(**{x:p['camspec',x] 
                                     for x in ['like_file', 
-                                              'sz143_file', 
-                                              'tszxcib_file', 
-                                              'ksz_file', 
                                               'beam_file']})
         self.lmax = max(self.pycamspec.lmaxx)
         self.freqs = p['camspec','eff_fr']

@@ -26,11 +26,11 @@ module pycamspec
 contains
 
 
-  subroutine like_init(like_file, sz143_file, tszxcib_file, ksz_file, beam_file)
+  subroutine like_init(like_file, beam_file)
 
     integer :: i, j, l,dummy
 
-    character*100 like_file, sz143_file, ksz_file, tszxcib_file, beam_file
+    character*100 like_file, beam_file
 
     ! cl_ksz_148_tbo.dat file is in D_l, format l D_l, from l=2 to 10000
     ! tsz_x_cib_template.txt is is (l D_l), from l=2 to 9999, normalized to unity 
@@ -62,24 +62,6 @@ contains
     !  close(48)
 
     lmax_sz=5000
-
-    open(48, file=sz143_file, form='formatted', status='unknown')
-    do i=2,lmax_sz
-       read(48,*) dummy,sz_143_temp(i)
-    enddo
-    close(48)
-
-    open(48, file=ksz_file, form='formatted',status='unknown')
-    do i=2,lmax_sz
-       read(48,*) dummy,ksz_temp(i)
-    enddo
-    close(48)
-
-    open(48, file=tszxcib_file,form='formatted',status='unknown')
-    do i=2,lmax_sz
-       read(48,*) dummy,tszxcib_temp(i)
-    enddo
-    close(48)
 
     open(48, file=beam_file, form='unformatted', status='unknown')
     read(48) beam_Nspec,num_modes_per_beam,beam_lmax
