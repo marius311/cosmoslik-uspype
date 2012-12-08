@@ -85,5 +85,5 @@ class camspec_official(Likelihood):
                                            for x in ['A_ps_100','A_ps_143','A_ps_217',
                                                      'A_cib_143','A_cib_217','A_sz','A_ksz',
                                                      'r_ps','r_cib','xi',
-                                                     'cal0', 'cal1', 'cal2']})
+                                                     'cal0', 'cal1', 'cal2']})/2
         
