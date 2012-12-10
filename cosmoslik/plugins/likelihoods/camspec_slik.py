@@ -1,5 +1,5 @@
 from cosmoslik.plugins import Likelihood
-from numpy import hstack, arange, array, cumsum, frombuffer, dot, ix_, ones, sqrt
+from numpy import hstack, arange, array, cumsum, frombuffer, dot, ix_, ones, sqrt, load
 from scipy.linalg import cho_factor, cho_solve, inv
 import cPickle
 
@@ -24,6 +24,7 @@ class camspec_slik(Likelihood):
                              if r])
         
         with open(p['camspec','like_file'],'r') as f: self.x, cv = cPickle.load(f)
+        if 'dx' in p['camspec']: self.x += load(p['camspec','x'])
         todl = self.ells*(self.ells+1)
         self.x *= todl
         cv = ((cv*todl).T*todl).T
