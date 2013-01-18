@@ -1,4 +1,4 @@
-from cosmoslik.plugins.models.egfs import egfs
+from cosmoslik_plugins.models.egfs import egfs
 from numpy import arange, hstack, loadtxt, zeros, exp, sqrt, pi, mean
 import os
 
