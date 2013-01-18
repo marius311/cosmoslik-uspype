@@ -56,7 +56,7 @@ class camspec(Likelihood):
         self.pycamspec.like_init(**{x:p['camspec',x] 
                                     for x in ['like_file', 
                                               'beam_file']})
-        self.lmax = max(self.pycamspec.lmaxx)
+        self.lmax = max(self.pycamspec.lmax)
         self.freqs = p['camspec','eff_fr']
         self.fluxcut = p['camspec','fluxcut']
         
