@@ -9,10 +9,16 @@ class camspec(egfs):
         
         self.dir = os.path.dirname(os.path.abspath(__file__))
         padding = zeros(10000)
-        def norm(cl,norm=self.norm_ell): return (lambda dl: dl/dl[norm])((lambda l: cl*l*(l+1)/2/pi)(arange(cl.shape[0])))
+        def norm(dl,norm=self.norm_ell): return dl/dl[norm]
         self.tsz_template = norm(hstack([[0,0],loadtxt(os.path.join(self.dir,"camspec_templates/tsz_143_eps0.50.dat"))[:,1],padding]))
         self.ksz_template = norm(hstack([[0,0],loadtxt(os.path.join(self.dir,"camspec_templates/cl_ksz_148_trac.dat"))[:,1],padding]))
         self.tszxcib_template = norm(hstack([[0,0],loadtxt(os.path.join(self.dir,"camspec_templates/sz_x_cib_template.dat"))[:,1],padding]))
+
+    def get_colors(self,p):
+        return {'ps_100':'orange','ps_143':'orange','ps_217':'orange','ps_143_217':'orange',
+                'cib_143':'g','cib_217':'g','cib_143_217':'g',
+                'tsz':'m','ksz':'cyan',
+                'tsz_cib':'brown'}
 
     def get_egfs(self, p, spectra, lmax, freqs, **kwargs):
         
@@ -45,6 +51,10 @@ class camspec(egfs):
             comps['cib_143_217'] = p['r_cib']*sqrt(p['a_cib_143']*p['a_cib_217'])*ell**0.8
             comps['tsz_cib'] = - p['xi'] * sqrt(p['a_tsz'] * tszdep(143,143,p['tsz_norm_fr']) * p['a_cib_217']) * self.tszxcib_template[:lmax]
             
+        #so it shows up on a log plot
+        if 'plot' in kwargs:
+            for k in comps: comps[k] = abs(comps[k]) 
+
         return comps
             
         
