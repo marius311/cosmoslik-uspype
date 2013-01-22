@@ -22,9 +22,6 @@ class camspec(Likelihood):
     
         #initialization parameters
         like_file = 
-        sz143_file = 
-        tszxcib_file = 
-        ksz_file =
         beam_file = 
         
         #effective frequencies and flux cuts to be used for foreground modeling
@@ -88,6 +85,6 @@ class camspec(Likelihood):
                                         cell_fg143x217=tocl(cl_model[('143','217')]),
                                         beam_coeffs=[[p.get(('camspec','spec_%i'%i,'mode_%i'%j),0)
                                                       for j in range(self.pycamspec.num_modes_per_beam)]
-                                                     for i in range(self.pycamspec.beam_nspec)],
+                                                     for i in range(self.pycamspec.beam_Nspec)],
                                         **{x:p.get(('camspec',x),1) for x in ['cal0', 'cal1', 'cal2']})/2
         
