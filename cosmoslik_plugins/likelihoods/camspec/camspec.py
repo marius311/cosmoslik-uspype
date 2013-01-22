@@ -71,7 +71,8 @@ class camspec(Likelihood):
         clmodel.update({(fr1,fr2):model['egfs']('cl_TT',
                                                 lmax=self.lmax, 
                                                 freqs=(self.freqs[fr1],self.freqs[fr2]),
-                                                fluxcut=min(self.fluxcut[fr1],self.fluxcut[fr2]))
+                                                fluxcut=min(self.fluxcut[fr1],self.fluxcut[fr2]),
+                                                id='planck')
                         for fr1,fr2 in [('100','100'),('143','143'),('217','217'),('143','217')]})
         return clmodel
     
