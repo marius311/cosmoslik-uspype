@@ -44,7 +44,7 @@ class camspec_cibtests2(egfs):
                        p['a_nl1_cib_143'] * ellplaw(p['n_cib_1'],p['nrun_cib_1']),
                        p['a_nl2_cib_143'] * ellplaw(p['n_cib_2'],p['nrun_cib_2'])])
             if fr!='143':
-                cib = p['a_cib_%s'%fr] * cib / cib[self.norm_ell]
+                cib = p['a_cib_%s'%fr] / sum([p['a_lin_cib_143'],p['a_nl1_cib_143'],p['a_nl2_cib_143']]) * cib
             return cib
                 
                 

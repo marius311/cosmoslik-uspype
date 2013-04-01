@@ -1,4 +1,4 @@
-from numpy import array, fromstring, loadtxt, dot, arange, diag
+from numpy import array, fromstring, loadtxt, dot, arange, diag, sqrt
 from scipy.linalg import cho_factor, cho_solve
 from cosmoslik.plugins import Likelihood
 from itertools import takewhile
@@ -87,6 +87,7 @@ class spt_s12(Likelihood):
             self.sigma = self.sigma[bmin:,bmin:]
             self.windows = self.windows[bmin:]
         
+        self.errorbars = sqrt(diag(self.sigma))
         self.sigma = cho_factor(self.sigma)
         
         self.windowrange = (lambda x: slice(min(x),max(x)+1))(loadtxt(os.path.join(self.datadir,'windows','window_lps12','window_1'))[:,0])
