@@ -32,7 +32,7 @@ class clik_like(Likelihood):
         for k,clik in self.cliks.items():
             lnl=-clik(hstack(tocl(model.get('cl_%s'%x,zeros(lmax+1))[:lmax+1])
                              for x, lmax in zip(['TT','EE','BB','TE','TB','EB'],clik.get_lmax()) 
-                             if lmax!=-1))
+                             if lmax!=-1))[0]
             if lnl==0: return inf
             else: tot_lnl += lnl
             
