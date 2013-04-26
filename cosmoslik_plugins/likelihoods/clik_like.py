@@ -1,5 +1,5 @@
 from cosmoslik.plugins import Likelihood
-from numpy import hstack, zeros, arange, pi, inf
+from numpy import hstack, zeros, arange, pi, inf, nan
 
 class clik_like(Likelihood):
     """
@@ -29,14 +29,16 @@ class clik_like(Likelihood):
     def lnl(self, p, model):
         tot_lnl = 0
         
+        p['_likelihood']['clik'] = {k:nan for k in self.cliks}
         for k,clik in self.cliks.items():
-            lnl=-clik(hstack(tocl(model.get('cl_%s'%x,zeros(lmax+1))[:lmax+1])
+            lnl = p['_likelihood']['clik'][k] = \
+                -clik(hstack(tocl(model.get('cl_%s'%x,zeros(lmax+1))[:lmax+1])
                              for x, lmax in zip(['TT','EE','BB','TE','TB','EB'],clik.get_lmax()) 
                              if lmax!=-1))[0]
             if lnl==0: return inf
             else: tot_lnl += lnl
             
-        return lnl
+        return tot_lnl
     
 def tocl(dl): 
     return hstack([zeros(2),dl[2:]/arange(2,dl.size)/(arange(2,dl.size)+1)*2*pi])
